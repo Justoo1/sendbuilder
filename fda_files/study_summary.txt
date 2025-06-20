@@ -1,0 +1,47 @@
+STUDY SUMMARY
+==================================================
+Study ID: 23
+Study Title: A Maximum Tolerated Dose Study of SOPH-110S
+Study Description: A Maximum Tolerated Dose Study of SOPH-110S Administered 
+to Rats via Intravenous Bolus Injection 
+Attentive Science Study No. 
+1124-8751 
+Sponsor: 
+Sophrosyne Pharmaceuticals Limited 
+540 W Madison St, Suite 2500 
+Chicago, IL 60661, USA 
+Test Facility: 
+Attentive Science 
+17745 Metcalf Avenue 
+Building #4 
+Stilwell, KS 66085, USA
+Generated: 2025-06-20 17:05:32
+
+DOMAINS EXTRACTED:
+--------------------
+TS: 14 records
+  Description: High-level protocol parameters and settings.
+DS: 164 records
+  Description: Subject status and study events like death or early termination.
+MA: 311 records
+  Description: Gross necropsy findings observed in organs/tissues.
+DM: 43 records
+  Description: Subject-level information such as species, strain, sex, etc.
+CL: 137 records
+  Description: Clinical signs recorded during the study.
+FW: 156 records
+  Description: Daily food and water consumption measurements for animals.
+TA: 9 records
+  Description: Defined treatment groups.
+BW: 272 records
+  Description: Weights collected across time points.
+EX: 267 records
+  Description: Dosing information for each subject.
+
+FILE STRUCTURE:
+---------------
+- define.xml: Metadata definitions
+- *.xpt: SAS transport files for each domain
+- study_summary.txt: This summary file
+- data_specification.html: Detailed data specifications
+- validation_report.html: Data validation results

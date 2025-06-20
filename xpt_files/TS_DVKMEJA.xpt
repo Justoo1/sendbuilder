@@ -1,0 +1,15 @@
+DOMAIN,STUDYID,TSPARM,TSPARMCD,TSSEQ,TSVAL
+TS,1124-8751,Study No.: 1124-8751,TITLE,1,
+TS,1124-8751,Attentive Science,SPONSOR,2,
+TS,1124-8751,Not Applicable,PUBLICTITLE,3,
+TS,1124-8751,Rat,SPECIES,4,
+TS,1124-8751,28 days,DURATION,5,
+TS,1124-8751,100,NUMBEROFANIMALS,6,
+TS,1124-8751,Male/Female,SEX,7,
+TS,1124-8751,1 male mortality at 200 mg/kg,MORTALITY,8,
+TS,1124-8751,Phosphate Buffered Saline,VEHICLE IDENTIFICATION,9,pH 6.0 ± 0.1
+TS,1124-8751,No test article-related effects on body weight,BODY_WEIGHTS,10,
+TS,1124-8751,No test article-related effects on food consumption,FOOD_CONSUMPTION,11,
+TS,1124-8751,No test article-related effects on macroscopic observations,MACROSCOPIC_OBSERVATIONS,12,
+TS,1124-8751,140 mg/kg in both males and females.,MTD,13,
+TS,1124-8751,D (alleviated momentary pain or distress),PAIN CATEGORY,14,

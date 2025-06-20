@@ -1,0 +1,452 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Domain Detection - {{ study.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <!-- Page Header -->
+            <div class="text-center mb-5">
+                <h2 class="mb-3">SEND Domain Detection</h2>
+                <p class="text-muted">Detect SEND domains from study: <strong>{{ study.title }}</strong></p>
+                {% if not has_content %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        No study content found. Please process the PDF first.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Study Information Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt"></i> Study Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Study Name:</strong> {{ study.title }}</p>
+                            <p><strong>Content Pages:</strong> {{ content_count }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Existing Detections:</strong> {{ existing_detections }}</p>
+                            {% if existing_detections > 0 %}
+                                <a href="{% url 'builder:detection_results' study.study_id %}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-eye"></i> View Previous Results
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> What This Page Does</h5>
+                </div>
+                <div class="card-body">
+                    <p>This SEND domain detection system will:</p>
+                    <ul class="mb-3">
+                        <li><strong>Analyze Study Content:</strong> Scan through {{ content_count }} pages of your toxicology study</li>
+                        <li><strong>Identify SEND Domains:</strong> Detect standard SEND domains (DM, BW, CL, LB, MA, MI, etc.)</li>
+                        <li><strong>Validate Data Presence:</strong> Ensure actual SEND data exists, not just keyword mentions</li>
+                        <li><strong>Confidence Scoring:</strong> Provide confidence scores based on data quality</li>
+                        <li><strong>Page-by-Page Results:</strong> Show exactly which pages contain domain data</li>
+                    </ul>
+                    <div class="alert alert-info">
+                        <strong>Advanced Detection:</strong> This system validates actual SEND data patterns (USUBJID, BWTEST, LBORRES, etc.) 
+                        rather than just searching for keywords.
+                    </div>
+                    {% if not has_content %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> No study content available for analysis. Please upload and process a PDF first.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Detection Form -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Start SEND Domain Detection</h5>
+                </div>
+                <div class="card-body">
+                    <form id="detectionForm" method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Hidden study ID -->
+                        <input type="hidden" name="study_id" value="{{ study.study_id }}">
+
+                        <!-- Detection Options -->
+                        <div class="mb-4">
+                            <label class="form-label">Detection Options</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="deep_analysis" id="deep_analysis" checked>
+                                <label class="form-check-label" for="deep_analysis">
+                                    <strong>Deep Analysis</strong> - Thorough pattern validation (recommended)
+                                </label>
+                                <small class="form-text text-muted d-block">Validates actual SEND data structures and field patterns</small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="extract_tables" id="extract_tables" checked>
+                                <label class="form-check-label" for="extract_tables">
+                                    <strong>Table Analysis</strong> - Extract and validate tabular data
+                                </label>
+                                <small class="form-text text-muted d-block">Identifies table structures and validates data formats</small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="strict_validation" id="strict_validation">
+                                <label class="form-check-label" for="strict_validation">
+                                    <strong>Strict Validation</strong> - Higher confidence threshold (70%+)
+                                </label>
+                                <small class="form-text text-muted d-block">Only save detections with high confidence scores</small>
+                            </div>
+                        </div>
+
+                        <!-- Detection Statistics -->
+                        {% if existing_detections > 0 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Previous Results Found:</strong> This study has {{ existing_detections }} existing domain detections. 
+                            Running detection again will replace the previous results.
+                        </div>
+                        {% endif %}
+
+                        <!-- Detect Button -->
+                        <div class="text-center">
+                            <button type="submit" id="detectBtn" class="btn btn-primary btn-lg" {% if not has_content %}disabled{% endif %}>
+                                <i class="fas fa-search"></i> Start SEND Detection
+                            </button>
+                            {% if not has_content %}
+                                <p class="text-muted mt-2">
+                                    <small>Please process study content first to enable detection</small>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Processing Status (Hidden by default) -->
+            <div id="processingStatus" class="card mt-4" style="display: none;">
+                <div class="card-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5>Analyzing SEND Domains</h5>
+                    <p class="text-muted mb-0">Processing {{ content_count }} pages of study content...</p>
+                    <small class="text-muted">Validating SEND data patterns and structures</small>
+                    
+                    <!-- Progress indicator (optional) -->
+                    <div class="progress mt-3" style="height: 6px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section (Hidden by default) -->
+            <div id="resultsSection" class="card mt-4" style="display: none;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle"></i> SEND Detection Complete</h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultsContent">
+                        <!-- Results will be populated here -->
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'builder:detection_results' study.study_id %}" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> View Detailed Results
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section (Hidden by default) -->
+            <div id="errorSection" class="alert alert-danger mt-4" style="display: none;">
+                <h5><i class="fas fa-exclamation-triangle"></i> Detection Failed</h5>
+                <p id="errorMessage">An error occurred during the SEND domain detection process.</p>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-outline-danger" onclick="resetForm()">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                    <a href="{% url 'builder:detection_results' study.study_id %}" class="btn btn-outline-info ml-2">
+                        <i class="fas fa-eye"></i> View Previous Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('detectionForm');
+    const detectBtn = document.getElementById('detectBtn');
+    const processingStatus = document.getElementById('processingStatus');
+    const resultsSection = document.getElementById('resultsSection');
+    const errorSection = document.getElementById('errorSection');
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        startDetection();
+    });
+
+    function startDetection() {
+        // Check if content is available
+        if (!{{ has_content|yesno:"true,false" }}) {
+            showError('No study content available. Please process the PDF first.');
+            return;
+        }
+
+        // Hide previous results/errors
+        resultsSection.style.display = 'none';
+        errorSection.style.display = 'none';
+        
+        // Show processing status
+        processingStatus.style.display = 'block';
+        
+        // Disable form
+        detectBtn.disabled = true;
+        detectBtn.innerHTML = '<i class="spinner-border spinner-border-sm"></i> Analyzing...';
+
+        // Prepare form data
+        const formData = new FormData(form);
+
+        // Make AJAX request to the same URL
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Detection response:', data); // Debug log
+            processingStatus.style.display = 'none';
+            
+            if (data.success) {
+                showResults(data);
+            } else {
+                showError(data.error || 'An unknown error occurred during detection');
+            }
+        })
+        .catch(error => {
+            console.error('Detection error:', error); // Debug log
+            processingStatus.style.display = 'none';
+            showError('Network error: ' + error.message);
+        })
+        .finally(() => {
+            // Re-enable form
+            detectBtn.disabled = false;
+            detectBtn.innerHTML = '<i class="fas fa-search"></i> Start SEND Detection';
+        });
+    }
+
+    function showResults(data) {
+        const resultsContent = document.getElementById('resultsContent');
+        
+        let html = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-chart-line"></i> Detection Summary</h6>
+                    <ul class="list-unstyled">
+                        <li><strong>Pages Processed:</strong> ${data.documents_processed || 0}</li>
+                        <li><strong>SEND Domains Found:</strong> ${data.domains_detected || 0}</li>
+                        <li><strong>Processing Time:</strong> ${data.processing_time || 'N/A'}</li>
+                        <li><strong>Study:</strong> {{ study.title }}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-check-circle"></i> Status</h6>
+                    <span class="badge bg-success mb-2">Detection Completed Successfully</span>
+                    ${data.domains_detected > 0 ? 
+                        '<p class="text-success mb-0"><i class="fas fa-thumbs-up"></i> SEND domains detected and validated!</p>' : 
+                        '<p class="text-warning mb-0"><i class="fas fa-info-circle"></i> No valid SEND domains found in this study.</p>'
+                    }
+                </div>
+            </div>
+        `;
+
+        // Show confidence distribution if available
+        if (data.summary && data.summary.domains_by_confidence) {
+            const conf = data.summary.domains_by_confidence;
+            html += `
+                <hr>
+                <h6><i class="fas fa-medal"></i> Confidence Distribution</h6>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="text-center p-2 border rounded">
+                            <div class="h4 text-success">${conf.high || 0}</div>
+                            <small>High Confidence (70%+)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-2 border rounded">
+                            <div class="h4 text-warning">${conf.medium || 0}</div>
+                            <small>Medium Confidence (50-69%)</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center p-2 border rounded">
+                            <div class="h4 text-danger">${conf.low || 0}</div>
+                            <small>Low Confidence (30-49%)</small>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show detected domains with details
+        if (data.detected_domains && data.detected_domains.length > 0) {
+            html += `
+                <hr>
+                <h6><i class="fas fa-list"></i> Detected SEND Domains</h6>
+                <div class="row">
+            `;
+            
+            data.detected_domains.forEach(domain => {
+                html += `
+                    <div class="col-md-3 mb-2">
+                        <span class="badge bg-primary p-2">${domain}</span>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+
+            // Show detailed detection info if available
+            if (data.detections_detail && data.detections_detail.length > 0) {
+                html += `
+                    <div class="mt-3">
+                        <h6><i class="fas fa-info-circle"></i> Detection Details</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Domain</th>
+                                        <th>Page</th>
+                                        <th>Confidence</th>
+                                        <th>Data Type</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                data.detections_detail.slice(0, 5).forEach(det => {
+                    const confidenceClass = det.confidence >= 70 ? 'success' : det.confidence >= 50 ? 'warning' : 'danger';
+                    html += `
+                        <tr>
+                            <td><span class="badge bg-primary">${det.domain_code}</span></td>
+                            <td>${det.page}</td>
+                            <td><span class="badge bg-${confidenceClass}">${det.confidence}%</span></td>
+                            <td><small>${det.data_type || 'mixed'}</small></td>
+                        </tr>
+                    `;
+                });
+                
+                if (data.detections_detail.length > 5) {
+                    html += `
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">
+                                <small>... and ${data.detections_detail.length - 5} more detections</small>
+                            </td>
+                        </tr>
+                    `;
+                }
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            html += `
+                <hr>
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle"></i> No SEND Domains Detected</h6>
+                    <p class="mb-0">The system did not find any valid SEND domain data in this study. This could mean:</p>
+                    <ul class="mb-0 mt-2">
+                        <li>The study may not contain standard SEND formatted data</li>
+                        <li>The data may be in a format not yet recognized by the system</li>
+                        <li>The confidence threshold may be too strict</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        resultsContent.innerHTML = html;
+        resultsSection.style.display = 'block';
+        
+        // Scroll to results
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function showError(message) {
+        document.getElementById('errorMessage').textContent = message;
+        errorSection.style.display = 'block';
+        errorSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Global function for reset button
+    window.resetForm = function() {
+        errorSection.style.display = 'none';
+        resultsSection.style.display = 'none';
+        processingStatus.style.display = 'none';
+        form.reset();
+    };
+
+    // Add some visual feedback for checkboxes
+    const checkboxes = document.querySelectorAll('.form-check-input');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            if (this.checked) {
+                label.style.fontWeight = 'bold';
+            } else {
+                label.style.fontWeight = 'normal';
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.spinner-border {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.badge {
+    font-size: 0.9em;
+    margin: 2px;
+}
+
+#processingStatus .spinner-border {
+    border-width: 0.25em;
+}
+
+.form-check-label {
+    transition: font-weight 0.2s ease;
+}
+</style>
+{% endblock %}

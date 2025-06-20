@@ -1,0 +1,203 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Detection Results - {{ study.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3>Detection Results</h3>
+                    <p class="text-muted">Study: {{ study.title }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'builder:detect_domain' study.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Detection
+                    </a>
+                    <a href="{% url 'builder:redetect_domains' study.pk %}" class="btn btn-primary" 
+                       onclick="return confirm('This will clear existing results. Continue?')">
+                        <i class="fas fa-redo"></i> Re-run Detection
+                    </a>
+                    <a href="{% url 'builder:dashboard' study.pk %}" class="btn btn-primary">
+                        <i class="fas fa-gears"></i> Extraction Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h4 class="text-primary">{{ total_detections }}</h4>
+                            <p class="mb-0">Total Detections</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h4 class="text-success">{{ summary.domains_detected|length }}</h4>
+                            <p class="mb-0">Unique Domains</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h4 class="text-info">{{ summary.pages_analyzed }}</h4>
+                            <p class="mb-0">Pages Analyzed</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h4 class="text-warning">{{ summary.average_confidence|floatformat:0 }}%</h4>
+                            <p class="mb-0">Avg Confidence</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confidence Distribution -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Confidence Distribution</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="progress mb-2" style="height: 25px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {% widthratio summary.confidence_distribution.high total_detections 100 %}%">
+                                        {{ summary.confidence_distribution.high }}
+                                    </div>
+                                </div>
+                                <small>High Confidence (70%+)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="progress mb-2" style="height: 25px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" 
+                                         style="width: {% widthratio summary.confidence_distribution.medium total_detections 100 %}%">
+                                        {{ summary.confidence_distribution.medium }}
+                                    </div>
+                                </div>
+                                <small>Medium Confidence (50-69%)</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <div class="progress mb-2" style="height: 25px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                         style="width: {% widthratio summary.confidence_distribution.low total_detections 100 %}%">
+                                        {{ summary.confidence_distribution.low }}
+                                    </div>
+                                </div>
+                                <small>Low Confidence (Below 50%)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detection Results Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Detected Domains</h5>
+                </div>
+                <div class="card-body">
+                    {% if detections %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Domain</th>
+                                        <th>Name</th>
+                                        <th>Pages Found</th>
+                                        <th>Confidence</th>
+                                        <th>Date Detected</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for detection in detections %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge bg-primary">{{ detection.domain_code }}</span>
+                                            </td>
+                                            <td>{{ detection.domain_name }}</td>
+                                            <td>
+                                                {% for page in detection.pages %}
+                                                    <span class="badge bg-light text-dark">{{ page }}</span>
+                                                {% endfor %}
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    {% if detection.confidence >= 70 %}
+                                                        <span class="badge bg-success">{{ detection.confidence }}%</span>
+                                                    {% elif detection.confidence >= 50 %}
+                                                        <span class="badge bg-warning">{{ detection.confidence }}%</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">{{ detection.confidence }}%</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>{{ detection.created_at|date:"M d, Y H:i" }}</td>
+                                            <td>
+                                                {% comment %} <a href="{% url 'builder:detection_detail' study.pk detection.id %}" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i> View Details
+                                                </a> {% endcomment %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                            <h5>No Domains Detected</h5>
+                            <p class="text-muted">No SEND domains were found in the study content.</p>
+                            <a href="{% url 'builder:detect_domain' study.pk %}" class="btn btn-primary">
+                                Run Detection Again
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add some interactivity
+document.addEventListener('DOMContentLoaded', function() {
+    // Add tooltips to confidence badges
+    const confidenceBadges = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    confidenceBadges.forEach(badge => {
+        new bootstrap.Tooltip(badge);
+    });
+    
+    // Auto-refresh detection status (optional)
+    // setInterval(checkDetectionStatus, 30000); // Every 30 seconds
+});
+
+function checkDetectionStatus() {
+    fetch(`{% url 'builder:detection_status' study.pk %}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update UI if needed
+                console.log('Detection status updated', data);
+            }
+        })
+        .catch(error => console.error('Error checking status:', error));
+}
+</script>
+{% endblock %}

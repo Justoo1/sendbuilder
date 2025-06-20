@@ -1,0 +1,44 @@
+ARM,ARMCD,DOMAIN,RFSTDTC,SEX,SPECIES,STRAIN,STUDYID,SUBJID,USUBJID
+Control,G1,DM,2022-01-01,M,RAT,WISTAR,1124-8751,RAT001,1124-8751-
+Control,G1,DM,2025-03-14,F,RAT,,1124-8751,4,1124-8751-F001
+Low Dose,G2,DM,2025-03-14,F,RAT,,1124-8751,5,1124-8751-F002
+High Dose,G3,DM,2025-03-14,F,RAT,,1124-8751,6,1124-8751-F003
+Control,G1,DM,2025-03-14,M,RAT,,1124-8751,1,1124-8751-M001
+Low Dose,G2,DM,2025-03-14,M,RAT,,1124-8751,2,1124-8751-M002
+High Dose,G3,DM,2025-03-14,M,RAT,,1124-8751,3,1124-8751-M003
+Control,G1,DM,2022-01-01,M,RAT,WISTAR,1124-8751,RAT001,1124-8751-S001
+Low Dose,G2,DM,2022-01-01,F,RAT,WISTAR,1124-8751,RAT002,1124-8751-S002
+High Dose,G3,DM,2022-01-01,M,RAT,WISTAR,1124-8751,RAT003,1124-8751-S003
+Control,CONTROL,DM,2022-01-01,F,RAT,WISTAR,1124-8751,RAT004,1124-8751-S004
+,Control,DM,2025-03-14,G1,RAT,,1124-8751,,1124-8751-S01
+,Low Dose,DM,2025-03-14,G2,RAT,,1124-8751,,1124-8751-S02
+,High Dose,DM,2025-03-14,G3,RAT,,1124-8751,,1124-8751-S03
+,Control,DM,2025-03-14,CONTROL,RAT,,1124-8751,,1124-8751-S04
+Low Dose,G2,DM,2024-11-01,M,RAT,,1124-8751,G2,1124-8751-S05
+High Dose,G3,DM,2024-11-05,F,RAT,,1124-8751,G3,1124-8751-S06
+Control,G4,DM,2024-11-07,M,RAT,,1124-8751,G4,1124-8751-S07
+Control,G1,DM,2024-10-30,F,RAT,,1124-8751,G1,1124-8751-S08
+Control,G1,DM,2024-10-30,M,RAT,SPF,1124-8751,1,1124-8751-S1
+Control,G4,DM,2024-11-08,F,RAT,SPF,1124-8751,10,1124-8751-S10
+Low Dose,G2,DM,2024-10-30,M,RAT,SPF,1124-8751,2,1124-8751-S2
+High Dose,G3,DM,2024-10-30,M,RAT,SPF,1124-8751,3,1124-8751-S3
+Control,G4,DM,2024-10-30,F,RAT,SPF,1124-8751,4,1124-8751-S4
+Low Dose,G2,DM,2024-10-31,M,RAT,SPF,1124-8751,5,1124-8751-S5
+High Dose,G3,DM,2024-11-01,F,RAT,SPF,1124-8751,6,1124-8751-S6
+Control,G4,DM,2024-11-04,M,RAT,SPF,1124-8751,7,1124-8751-S7
+Low Dose,G2,DM,2024-11-05,F,RAT,SPF,1124-8751,8,1124-8751-S8
+High Dose,G3,DM,2024-11-07,M,RAT,SPF,1124-8751,9,1124-8751-S9
+Control,G1,DM,2023-02-01,F,RAT,SPF,1124-8751,SUB01,1124-8751-SUB01
+Low Dose,G2,DM,2023-02-01,M,RAT,SPF,1124-8751,SUB02,1124-8751-SUB02
+High Dose,G3,DM,2023-02-01,F,RAT,SPF,1124-8751,SUB03,1124-8751-SUB03
+Control,CONTROL,DM,2023-02-01,M,RAT,SPF,1124-8751,SUB04,1124-8751-SUB04
+,,DM,,,,,Also,,Also-DD) as per the guidelines.
+,,DM,,,,,Also,,Also-as per the instructions.
+Control,G1,DM,RAT,F,SPRAGUE DAWLEY,M,DM,2023-02-01,DM-
+,,DM,High Dose).,,,,G2,Low Dose,G2-CONTROL. The ARM is extracted using descriptive group names (Control
+,,DM,,,,,I assumed a generic study start date of 2023-01-01 and used the study ID as the unique subject identifier. In a real-world scenario,,I assumed a generic study start date of 2023-01-01 and used the study ID as the unique subject identifier. In a real-world scenario-
+,,DM,,,,,I used a generic date (2023-01-01) for demonstration purposes. In a real-world scenario,,I used a generic date (2023-01-01) for demonstration purposes. In a real-world scenario-
+,,DM,Low Dose,,HIGH DOSE,and Control. The RFSTDTC is the study start date in YYYY-MM-DD format.,Note: I assumed the species is RAT (Rattus norvegicus) and strain is SPF (Specific Pathogen Free). The sex is M for Male and F for Female. The ARMCD codes are G1,and CONTROL. The ARM descriptions are Control,Note: I assumed the species is RAT (Rattus norvegicus) and strain is SPF (Specific Pathogen Free). The sex is M for Male and F for Female. The ARMCD codes are G1-G3
+,,DM,STRAIN,and ARM are placeholders and may need to be updated with actual data from the study.,SEX,ARMCD,Note: Since the provided text does not contain any information about animal IDs,I had to make some assumptions based on typical toxicology study data. The values for SPECIES,Note: Since the provided text does not contain any information about animal IDs-and baseline characteristics
+,,DM,,,,,Note: Since the provided text does not contain any specific information about individual subjects (e.g.,I can help extract more accurate data.,Note: Since the provided text does not contain any specific information about individual subjects (e.g.-I assumed a single study with multiple groups. The `SUBJID` column is empty as there are no specific subject identifiers mentioned in the text. If you provide more context or details
+,,DM,,,,,Note: Since the provided text does not contain specific information about individual subjects (e.g.,I had to make some assumptions based on common practices in toxicology studies. The extracted data is a representation of what might be expected in such a study.,Note: Since the provided text does not contain specific information about individual subjects (e.g.-group assignments)

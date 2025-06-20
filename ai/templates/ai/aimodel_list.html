@@ -1,0 +1,70 @@
+{% extends 'base/base.html' %}
+
+{% block title %}AI Models{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>AI Models</h3>
+                <a href="{% url 'ai:aimodel_create' %}" class="btn btn-primary">Add New Model</a>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if models %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Provider</th>
+                                <th>Namespace</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for model in models %}
+                                <tr>
+                                    <td><strong>{{ model.name }}</strong></td>
+                                    <td>{{ model.get_model_type_display }}</td>
+                                    <td>{{ model.provider|default:"-" }}</td>
+                                    <td>{{ model.namespace|default:"-" }}</td>
+                                    <td>
+                                        {% if model.is_available %}
+                                            <span class="badge bg-success">Available</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Unavailable</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'ai:aimodel_update' model.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        <a href="{% url 'ai:aimodel_delete' model.pk %}" class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Are you sure you want to delete {{ model.name }}?')">Delete</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <h5>No AI Models Found</h5>
+                    <p>You haven't added any AI models yet.</p>
+                    <a href="{% url 'ai:aimodel_create' %}" class="btn btn-primary">Add Your First Model</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

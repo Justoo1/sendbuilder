@@ -1,0 +1,298 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - SENDBuilder AI{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Dashboard
+            </h1>
+            <a href="{% url 'builder:upload_study' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>
+                New Study
+            </a>
+        </div>
+        {% comment %} {% url 'extractor:upload' %} {% endcomment %}
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-start border-primary border-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total Studies
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_studies|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-flask fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-start border-success border-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Completed
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ completed_studies|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-start border-warning border-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Processing
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ processing_studies|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-cogs fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-start border-info border-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            AI Tasks
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ai_tasks|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-robot fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Row -->
+<div class="row">
+    <!-- Recent Studies -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Recent Studies</h6>
+                <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                {% comment %} {% url 'extractor:home' %} {% endcomment %}
+            </div>
+            <div class="card-body">
+                {% if recent_studies %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Study ID</th>
+                                    <th>Title</th>
+                                    <th>Species</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for study in recent_studies %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'extractor:study_detail' study.pk %}" class="text-decoration-none">
+                                            {{ study.study_id }}
+                                        </a>
+                                    </td>
+                                    <td>{{ study.title|truncatechars:30 }}</td>
+                                    <td>
+                                        {% if study.species %}
+                                            <span class="badge bg-secondary">{{ study.species }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if study.is_processing %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-spinner fa-spin me-1"></i>Processing
+                                            </span>
+                                        {% elif study.is_complete %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Complete
+                                            </span>
+                                        {% elif study.failed %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Failed
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ study.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'extractor:study_detail' study.pk %}" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if not study.is_processing %}
+                                                <a href="{% url 'extractor:process_study' study.pk %}" class="btn btn-outline-success">
+                                                    <i class="fas fa-play"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-flask fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No studies uploaded yet.</p>
+                        <a href="{% url 'builder:upload_study' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Upload Your First Study
+                            {% comment %} {% url 'extractor:upload' %} {% endcomment %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & System Status -->
+    <div class="col-xl-4 col-lg-5">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'builder:upload_study' %}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload New Study
+                        {% comment %} {% url 'extractor:upload' %} {% endcomment %}
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-hammer me-2"></i>Build XPT Files
+                        {% comment %} {% url 'builder:home' %} {% endcomment %}
+                    </a>
+                    <a href="#" class="btn btn-outline-primary">
+                        <i class="fas fa-robot me-2"></i>AI Agent Dashboard
+                        {% comment %} {% url 'ai_agent:dashboard' %} {% endcomment %}
+                    </a>
+                    <a href="" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>View All Extractions
+                        {% comment %} {% url 'extractor:domain_list' %} {% endcomment %}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="card">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">System Status</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <div class="h6 mb-0 text-success">
+                                <i class="fas fa-circle me-1"></i>Online
+                            </div>
+                            <small class="text-muted">AI Agent</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="h6 mb-0 text-success">
+                            <i class="fas fa-circle me-1"></i>Ready
+                        </div>
+                        <small class="text-muted">Ollama</small>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="small">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>SENDIG Version:</span>
+                        <span class="badge bg-primary">3.1</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>AI Model:</span>
+                        <span class="text-muted">DeepSeek-R1</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Processing Mode:</span>
+                        <span class="text-success">Local</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SEND Domains Quick Reference -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">SEND Domains Quick Reference</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for domain in domains %}
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-2">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-secondary me-2">{{ domain.code }}</span>
+                                <small>{{ domain.name }}</small>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <p class="text-muted mb-0">Domain information will be loaded here.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-refresh dashboard every 30 seconds for processing updates
+    setInterval(function() {
+        if ({{ processing_studies|default:0 }} > 0) {
+            location.reload();
+        }
+    }, 30000);
+</script>
+{% endblock %}

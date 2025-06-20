@@ -1,0 +1,15 @@
+DOMAIN,STUDYID,TSPARM,TSPARMCD,TSSEQ,TSVAL
+TS,1124-8751,Study Title,TITLE,1,Attentive Science Study No.: 1124-8751
+TS,1124-8751,Sponsor Name,SPONSOR,2,Attentive Science
+TS,1124-8751,Public Title,PUBLICTITLE,3,Attentive Science Study No.: 1124-8751
+TS,1124-8751,Study Phase,PHASE,4,I
+TS,1124-8751,Indication,INDICATION,5,General Health
+TS,1124-8751,Species,SEX,6,Male/Female
+TS,1124-8751,Duration,DURATION,7,28 days
+TS,1124-8751,Number of Animals 1,NUMBER_OF_ANIMALS_1,8,6 males and 5 females
+TS,1124-8751,Dose Level 2,DOSE_LEVEL_2,9,100 mg/kg
+TS,1124-8751,Number of Animals 2,NUMBER_OF_ANIMALS_2,10,25 males and 4 females
+TS,1124-8751,Dose Level 3,DOSE_LEVEL_3,11,140 mg/kg
+TS,1124-8751,Number of Animals 3,NUMBER_OF_ANIMALS_3,12,35 males and 4 females
+TS,1124-8751,Dose Level 4,DOSE_LEVEL_4,13,200 mg/kg
+TS,1124-8751,Number of Animals 4,NUMBER_OF_ANIMALS_4,14,50 males and 4 females

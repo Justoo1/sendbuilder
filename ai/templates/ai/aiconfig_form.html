@@ -1,0 +1,43 @@
+{% extends 'base/base.html' %}
+
+{% block title %}AI Configuration{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <h3>AI Configuration</h3>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-check mb-3">
+                    <input type="checkbox" name="{{ form.detect_with_ai.name }}" class="form-check-input" 
+                           id="{{ form.detect_with_ai.id_for_label }}" {% if form.detect_with_ai.value %}checked{% endif %}>
+                    <label class="form-check-label" for="{{ form.detect_with_ai.id_for_label }}">
+                        {{ form.detect_with_ai.label }}
+                    </label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" name="{{ form.extract_with_ai.name }}" class="form-check-input" 
+                           id="{{ form.extract_with_ai.id_for_label }}" {% if form.extract_with_ai.value %}checked{% endif %}>
+                    <label class="form-check-label" for="{{ form.extract_with_ai.id_for_label }}">
+                        {{ form.extract_with_ai.label }}
+                    </label>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" name="{{ form.use_smart_cache.name }}" class="form-check-input" 
+                           id="{{ form.use_smart_cache.id_for_label }}" {% if form.use_smart_cache.value %}checked{% endif %}>
+                    <label class="form-check-label" for="{{ form.use_smart_cache.id_for_label }}">
+                        {{ form.use_smart_cache.label }}
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Save Configuration</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

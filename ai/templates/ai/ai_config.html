@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}AI Configuration Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-cogs"></i> AI Configuration Settings
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Configuration Options -->
+                        <div class="mb-4">
+                            <h5 class="text-secondary mb-3">AI Processing Options</h5>
+                            
+                            <div class="form-group mb-4">
+                                <div class="card border-left-primary">
+                                    <div class="card-body py-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.detect_with_ai|add_class:"form-check-input" }}
+                                            <label class="form-check-label" for="{{ form.detect_with_ai.id_for_label }}">
+                                                <strong>{{ form.detect_with_ai.label }}</strong>
+                                            </label>
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            Enable AI-powered detection capabilities for enhanced accuracy and intelligent pattern recognition.
+                                        </small>
+                                        {% if form.detect_with_ai.errors %}
+                                            <div class="invalid-feedback d-block mt-2">
+                                                {{ form.detect_with_ai.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mb-4">
+                                <div class="card border-left-success">
+                                    <div class="card-body py-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.extract_with_ai|add_class:"form-check-input" }}
+                                            <label class="form-check-label" for="{{ form.extract_with_ai.id_for_label }}">
+                                                <strong>{{ form.extract_with_ai.label }}</strong>
+                                            </label>
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            Use AI for data extraction processes, improving accuracy and handling complex data structures.
+                                        </small>
+                                        {% if form.extract_with_ai.errors %}
+                                            <div class="invalid-feedback d-block mt-2">
+                                                {{ form.extract_with_ai.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mb-4">
+                                <div class="card border-left-info">
+                                    <div class="card-body py-3">
+                                        <div class="form-check form-switch">
+                                            {{ form.use_smart_cache|add_class:"form-check-input" }}
+                                            <label class="form-check-label" for="{{ form.use_smart_cache.id_for_label }}">
+                                                <strong>{{ form.use_smart_cache.label }}</strong>
+                                            </label>
+                                        </div>
+                                        <small class="text-muted mt-2 d-block">
+                                            Enable intelligent caching to improve performance and reduce API calls for similar requests.
+                                        </small>
+                                        {% if form.use_smart_cache.errors %}
+                                            <div class="invalid-feedback d-block mt-2">
+                                                {{ form.use_smart_cache.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuration Status -->
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-info-circle"></i> Configuration Status
+                            </h6>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <small class="text-muted">AI Detection:</small>
+                                    <span class="badge badge-{{ form.detect_with_ai.value|yesno:'success,secondary' }} ml-2">
+                                        {{ form.detect_with_ai.value|yesno:'Enabled,Disabled' }}
+                                    </span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted">AI Extraction:</small>
+                                    <span class="badge badge-{{ form.extract_with_ai.value|yesno:'success,secondary' }} ml-2">
+                                        {{ form.extract_with_ai.value|yesno:'Enabled,Disabled' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-sm-6">
+                                    <small class="text-muted">Smart Cache:</small>
+                                    <span class="badge badge-{{ form.use_smart_cache.value|yesno:'success,secondary' }} ml-2">
+                                        {{ form.use_smart_cache.value|yesno:'Enabled,Disabled' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'ai_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Configuration
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Additional Information Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle"></i> Configuration Help
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="helpAccordion">
+                        <div class="card">
+                            <div class="card-header" id="headingOne">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link btn-sm" type="button" data-toggle="collapse" data-target="#collapseOne">
+                                        What does AI Detection do?
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="collapseOne" class="collapse" data-parent="#helpAccordion">
+                                <div class="card-body">
+                                    AI Detection uses machine learning models to automatically identify and classify content, patterns, or anomalies in your data with higher accuracy than traditional methods.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header" id="headingTwo">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link btn-sm" type="button" data-toggle="collapse" data-target="#collapseTwo">
+                                        How does AI Extraction work?
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="collapseTwo" class="collapse" data-parent="#helpAccordion">
+                                <div class="card-body">
+                                    AI Extraction leverages natural language processing and computer vision to extract structured data from unstructured sources like documents, images, and text.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header" id="headingThree">
+                                <h2 class="mb-0">
+                                    <button class="btn btn-link btn-sm" type="button" data-toggle="collapse" data-target="#collapseThree">
+                                        Smart Cache benefits?
+                                    </button>
+                                </h2>
+                            </div>
+                            <div id="collapseThree" class="collapse" data-parent="#helpAccordion">
+                                <div class="card-body">
+                                    Smart Cache intelligently stores and reuses AI processing results for similar requests, reducing processing time and API costs while maintaining accuracy.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add visual feedback for switch toggles
+    const switches = document.querySelectorAll('.form-check-input');
+    
+    switches.forEach(function(switchInput) {
+        switchInput.addEventListener('change', function() {
+            const card = this.closest('.card');
+            if (this.checked) {
+                card.classList.add('border-success');
+                card.classList.remove('border-secondary');
+            } else {
+                card.classList.add('border-secondary');
+                card.classList.remove('border-success');
+            }
+            
+            // Update status badges in real-time
+            updateStatusBadges();
+        });
+    });
+    
+    function updateStatusBadges() {
+        const detectSwitch = document.querySelector('#id_detect_with_ai');
+        const extractSwitch = document.querySelector('#id_extract_with_ai');
+        const cacheSwitch = document.querySelector('#id_use_smart_cache');
+        
+        // This would need to be implemented with AJAX to update the status section
+        // For now, it's just a placeholder for future enhancement
+        console.log('Status updated:', {
+            detect: detectSwitch?.checked,
+            extract: extractSwitch?.checked,
+            cache: cacheSwitch?.checked
+        });
+    }
+    
+    // Form validation feedback
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        // Add any custom validation logic here
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        submitBtn.disabled = true;
+        
+        // Re-enable button after a delay (in case of errors)
+        setTimeout(function() {
+            submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Configuration';
+            submitBtn.disabled = false;
+        }, 3000);
+    });
+});
+</script>
+
+<style>
+.border-left-primary {
+    border-left: 4px solid #007bff !important;
+}
+
+.border-left-success {
+    border-left: 4px solid #28a745 !important;
+}
+
+.border-left-info {
+    border-left: 4px solid #17a2b8 !important;
+}
+
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.card-body {
+    transition: all 0.3s ease;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+</style>
+{% endblock %}

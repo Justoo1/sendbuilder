@@ -1,0 +1,167 @@
+[
+  {
+    "code": "DM",
+    "name": "Demographics",
+    "description": "Subject-level information such as species, strain, sex, etc."
+  },
+  {
+    "code": "TS",
+    "name": "Trial Summary",
+    "description": "Study-level protocol and treatment information."
+  },
+  {
+    "code": "SE",
+    "name": "Subject Elements",
+    "description": "Chronological order of elements for each subject."
+  },
+  {
+    "code": "DS",
+    "name": "Disposition",
+    "description": "Subject status and study events like death or early termination."
+  },
+  {
+    "code": "VS",
+    "name": "Vital Signs",
+    "description": "Measurements like body temperature, pulse, respiration rate, etc."
+  },
+  {
+    "code": "BW",
+    "name": "Body Weight",
+    "description": "Animal weight over time."
+  },
+  {
+    "code": "CL",
+    "name": "Clinical Observations",
+    "description": "Signs and symptoms observed during the study."
+  },
+  {
+    "code": "BG",
+    "name": "Body Weight Gain",
+    "description": "Derived weight change over time intervals."
+  },
+  {
+    "code": "LB",
+    "name": "Laboratory Test Results",
+    "description": "Clinical pathology results like hematology, chemistry, urinalysis."
+  },
+  {
+    "code": "MA",
+    "name": "Macroscopic Findings",
+    "description": "Gross necropsy findings observed in organs/tissues."
+  },
+  {
+    "code": "MI",
+    "name": "Microscopic Findings",
+    "description": "Histopathological observations in tissues."
+  },
+  {
+    "code": "RE",
+    "name": "Reproductive Findings",
+    "description": "Reproductive system observations (DART-specific)."
+  },
+  {
+    "code": "PP",
+    "name": "Pup Observations",
+    "description": "Data about offspring in reproductive or developmental studies."
+  },
+  {
+    "code": "FT",
+    "name": "Fetal Pathology",
+    "description": "Findings from fetal exams during DART studies."
+  },
+  {
+    "code": "MT",
+    "name": "Maternal Toxicity",
+    "description": "Toxicity observations in pregnant females."
+  },
+  {
+    "code": "PC",
+    "name": "Pharmacokinetics Concentrations",
+    "description": "Plasma or serum drug levels."
+  },
+  {
+    "code": "EX",
+    "name": "Exposure",
+    "description": "Dosing information for each subject."
+  },
+  {
+    "code": "TA",
+    "name": "Trial Arms",
+    "description": "Defined treatment groups."
+  },
+  {
+    "code": "TV",
+    "name": "Trial Visits",
+    "description": "Scheduled visits and collection timepoints."
+  },
+  {
+    "code": "TE",
+    "name": "Trial Elements",
+    "description": "Defined parts of the trial like dosing or recovery phases."
+  },
+  {
+    "code": "FA",
+    "name": "Findings About",
+    "description": "Details or clarifications about findings in other domains."
+  },
+  {
+    "code": "TR",
+    "name": "Tumor Results",
+    "description": "Tumor findings in carcinogenicity studies."
+  },
+  {
+    "code": "TU",
+    "name": "Tumor Identification",
+    "description": "Tumor location, type, and relationship to other tumors."
+  },
+  {
+    "code": "RS",
+    "name": "Response",
+    "description": "Response variables such as anti-drug antibodies."
+  },
+  {
+    "code": "PW",
+    "name": "Pathology Weights",
+    "description": "Organ weights at necropsy."
+  },
+  {
+    "code": "DV",
+    "name": "Deviations",
+    "description": "Protocol deviations."
+  },
+  {
+    "code": "CM",
+    "name": "Concomitant Medications",
+    "description": "Medications administered alongside study drugs."
+  },
+  {
+    "code": "EG",
+    "name": "ECG Test Results",
+    "description": "Electrocardiogram measurements."
+  },
+  {
+    "code": "IS",
+    "name": "Immunogenicity Specimens",
+    "description": "Samples collected for immunogenicity testing."
+  },
+  {
+    "code": "MA",
+    "name": "Macroscopic Findings",
+    "description": "Findings visible to the naked eye during necropsy."
+  },
+  {
+    "code": "MI",
+    "name": "Microscopic Findings",
+    "description": "Findings observed via microscope."
+  },
+  {
+    "code": "FW",
+    "name": "Food and Water Consumption",
+    "description": "Daily food and water consumption measurements for animals."
+  },
+  {
+    "code": "CO",
+    "name": "Comments",
+    "description": "Study comments, notes, protocol deviations, and additional information."
+  }
+]

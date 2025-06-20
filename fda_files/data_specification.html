@@ -1,0 +1,890 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Specification - Study 23</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .domain-header { background-color: #e6f3ff; font-weight: bold; }
+        .required { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Data Specification</h1>
+    <h2>Study 23: A Maximum Tolerated Dose Study of SOPH-110S</h2>
+    <p><strong>Generated:</strong> 2025-06-20 17:05:32</p>
+    
+    <h3>Overview</h3>
+    <p>This document describes the structure and content of the SEND datasets for this study.</p>
+    
+    <h3>Domain Specifications</h3>
+
+    <h4>TS - High-level protocol parameters and settings.</h4>
+    <p><strong>Records:</strong> 14</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>TSSEQ</td>
+            <td>TSSEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>TSVAL</td>
+            <td>TSVAL</td>
+            <td>Char</td>
+            <td>38</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>TSPARM</td>
+            <td>TSPARM</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>9</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>TSPARMCD</td>
+            <td>TSPARMCD</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>DS - Subject status and study events like death or early termination.</h4>
+    <p><strong>Records:</strong> 164</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>DSSEQ</td>
+            <td>DSSEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DSTERM</td>
+            <td>DSTERM</td>
+            <td>Char</td>
+            <td>117</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DSDECOD</td>
+            <td>DSDECOD</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DSSTDTC</td>
+            <td>DSSTDTC</td>
+            <td>Char</td>
+            <td>21</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>258</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>259</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>MA - Gross necropsy findings observed in organs/tissues.</h4>
+    <p><strong>Records:</strong> 311</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>MADTC</td>
+            <td>MADTC</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>MALOC</td>
+            <td>MALOC</td>
+            <td>Char</td>
+            <td>40</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>MASEQ</td>
+            <td>MASEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>MATEST</td>
+            <td>MATEST</td>
+            <td>Char</td>
+            <td>65</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>MAORRES</td>
+            <td>MAORRES</td>
+            <td>Char</td>
+            <td>59</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>290</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>575</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>MASTRESC</td>
+            <td>MASTRESC</td>
+            <td>Char</td>
+            <td>42</td>
+            <td>No</td>
+            <td>NORMAL, ABNORMAL</td>
+        </tr>
+
+        <tr>
+            <td>MATESTCD</td>
+            <td>MATESTCD</td>
+            <td>Char</td>
+            <td>41</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>DM - Subject-level information such as species, strain, sex, etc.</h4>
+    <p><strong>Records:</strong> 43</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>ARM</td>
+            <td>ARM</td>
+            <td>Char</td>
+            <td>9</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>SEX</td>
+            <td>SEX</td>
+            <td>Char</td>
+            <td>84</td>
+            <td>No</td>
+            <td>M, F</td>
+        </tr>
+
+        <tr>
+            <td>ARMCD</td>
+            <td>ARMCD</td>
+            <td>Char</td>
+            <td>9</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STRAIN</td>
+            <td>STRAIN</td>
+            <td>Char</td>
+            <td>70</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>SUBJID</td>
+            <td>SUBJID</td>
+            <td>Char</td>
+            <td>161</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>RFSTDTC</td>
+            <td>RFSTDTC</td>
+            <td>Char</td>
+            <td>11</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>SPECIES</td>
+            <td>SPECIES</td>
+            <td>Char</td>
+            <td>14</td>
+            <td>No</td>
+            <td>RAT, MOUSE, DOG, MONKEY</td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>161</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>286</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>CL - Clinical signs recorded during the study.</h4>
+    <p><strong>Records:</strong> 137</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>CCAT</td>
+            <td>CCAT</td>
+            <td>Char</td>
+            <td>20</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLCAT</td>
+            <td>CLCAT</td>
+            <td>Char</td>
+            <td>22</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLDTC</td>
+            <td>CLDTC</td>
+            <td>Char</td>
+            <td>0</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLLOC</td>
+            <td>CLLOC</td>
+            <td>Char</td>
+            <td>10</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLSEQ</td>
+            <td>CLSEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>C LDTC</td>
+            <td>C LDTC</td>
+            <td>Char</td>
+            <td>20</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLTEST</td>
+            <td>CLTEST</td>
+            <td>Char</td>
+            <td>22</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CULDTC</td>
+            <td>CULDTC</td>
+            <td>Char</td>
+            <td>20</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLORRES</td>
+            <td>CLORRES</td>
+            <td>Char</td>
+            <td>117</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>105</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>106</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLSTRESC</td>
+            <td>CLSTRESC</td>
+            <td>Char</td>
+            <td>10</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>CLTESTCD</td>
+            <td>CLTESTCD</td>
+            <td>Char</td>
+            <td>13</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>FW - Daily food and water consumption measurements for animals.</h4>
+    <p><strong>Records:</strong> 156</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>FWDTC</td>
+            <td>FWDTC</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>FWSEQ</td>
+            <td>FWSEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>FWTEST</td>
+            <td>FWTEST</td>
+            <td>Char</td>
+            <td>26</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>FWORRES</td>
+            <td>FWORRES</td>
+            <td>Char</td>
+            <td>4</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>303</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>345</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>FWORRESU</td>
+            <td>FWORRESU</td>
+            <td>Char</td>
+            <td>6</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>FWTESTCD</td>
+            <td>FWTESTCD</td>
+            <td>Char</td>
+            <td>9</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>TA - Defined treatment groups.</h4>
+    <p><strong>Records:</strong> 9</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>ARM</td>
+            <td>ARM</td>
+            <td>Char</td>
+            <td>79</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>ETCD</td>
+            <td>ETCD</td>
+            <td>Char</td>
+            <td>9</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>ARMCD</td>
+            <td>ARMCD</td>
+            <td>Char</td>
+            <td>78</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>ELEMENT</td>
+            <td>ELEMENT</td>
+            <td>Char</td>
+            <td>0</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>120</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>TAETORD</td>
+            <td>TAETORD</td>
+            <td>Char</td>
+            <td>87</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>"STUDYID</td>
+            <td>"STUDYID</td>
+            <td>Char</td>
+            <td>2</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>BW - Weights collected across time points.</h4>
+    <p><strong>Records:</strong> 272</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>BWDTC</td>
+            <td>BWDTC</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>BWSEQ</td>
+            <td>BWSEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>BWTEST</td>
+            <td>BWTEST</td>
+            <td>Char</td>
+            <td>11</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>BWORRES</td>
+            <td>BWORRES</td>
+            <td>Char</td>
+            <td>7</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>315</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>376</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>BWORRESU</td>
+            <td>BWORRESU</td>
+            <td>Char</td>
+            <td>8</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>BWTESTCD</td>
+            <td>BWTESTCD</td>
+            <td>Char</td>
+            <td>33</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <h4>EX - Dosing information for each subject.</h4>
+    <p><strong>Records:</strong> 267</p>
+    <table>
+        <tr>
+            <th>Variable</th>
+            <th>Label</th>
+            <th>Type</th>
+            <th>Length</th>
+            <th>Required</th>
+            <th>Controlled Terms</th>
+        </tr>
+
+        <tr>
+            <td>EXSEQ</td>
+            <td>EXSEQ</td>
+            <td>Num</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>EXTRT</td>
+            <td>EXTRT</td>
+            <td>Char</td>
+            <td>102</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>DOMAIN</td>
+            <td>DOMAIN</td>
+            <td>Char</td>
+            <td>2</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>EXDOSE</td>
+            <td>EXDOSE</td>
+            <td>Char</td>
+            <td>32</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>EXDOSU</td>
+            <td>EXDOSU</td>
+            <td>Char</td>
+            <td>9</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>EXROUTE</td>
+            <td>EXROUTE</td>
+            <td>Char</td>
+            <td>4</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>EXSTDTC</td>
+            <td>EXSTDTC</td>
+            <td>Char</td>
+            <td>19</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>STUDYID</td>
+            <td>STUDYID</td>
+            <td>Char</td>
+            <td>153</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>USUBJID</td>
+            <td>USUBJID</td>
+            <td>Char</td>
+            <td>241</td>
+            <td><span class="required">Yes</span></td>
+            <td></td>
+        </tr>
+
+        <tr>
+            <td>EXDOSFRQ</td>
+            <td>EXDOSFRQ</td>
+            <td>Char</td>
+            <td>2</td>
+            <td>No</td>
+            <td></td>
+        </tr>
+    </table>
+
+</body>
+</html>

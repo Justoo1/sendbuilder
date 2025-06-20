@@ -1,0 +1,371 @@
+{% extends "base/base.html" %}
+{% block title %}Extraction Results - Study {{ study.title }}{% endblock %}
+{% block content %}
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1><i class="fas fa-chart-line"></i> Extraction Results</h1>
+                    <div class="btn-group">
+                        <a href="{% url 'builder:dashboard' study.study_id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                        <button class="btn btn-success" onclick="downloadAllFiles()">
+                            <i class="fas fa-download"></i> Download All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Study Summary -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-flask"></i> Study Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Study ID:</strong> {{ study.id }}</p>
+                                        <p><strong>Title:</strong> {{ study.title|default:"N/A" }}</p>
+                                        <p><strong>Description:</strong> {{ study.description|default:"N/A" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Total Domains:</strong> {{ total_domains }}</p>
+                                        <p><strong>Total Records:</strong> {{ total_records }}</p>
+                                        <p><strong>FDA Files:</strong> {{ total_fda_files }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stats-card">
+                            <div class="card-body text-center">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <div class="fs-2 fw-bold">{{ total_domains }}</div>
+                                        <small>Domains</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="fs-2 fw-bold">{{ total_records }}</div>
+                                        <small>Records</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="fs-2 fw-bold">{{ total_fda_files }}</div>
+                                        <small>FDA Files</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Extracted Domains -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-database"></i> Extracted Domains</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if extracted_domains %}
+                        <div class="table-responsive">
+                            <table class="table table-hover domain-table">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Domain</th>
+                                        <th>Description</th>
+                                        <th>Records</th>
+                                        <th>Extraction Date</th>
+                                        <th>Files</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for domain in extracted_domains %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-primary fs-6">{{ domain.domain.code }}</span>
+                                        </td>
+                                        <td>{{ domain.domain.description|default:"N/A" }}</td>
+                                        <td>
+                                            <span class="fw-bold">{{ domain.content|length }}</span> records
+                                        </td>
+                                        <td>
+                                            {% if domain.created_at %}
+                                                <small class="text-muted">{{ domain.created_at|date:"M d, Y H:i" }}</small>
+                                            {% else %}
+                                                <small class="text-muted">N/A</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-1">
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-file-csv"></i> CSV
+                                                </span>
+                                                {% if domain.xpt_file %}
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-file-export"></i> XPT
+                                                </span>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'builder:download_domain_file' study.study_id 'csv' domain.domain.code %}" 
+                                                   class="btn btn-outline-success download-btn">
+                                                    <i class="fas fa-file-csv"></i> CSV
+                                                </a>
+                                                {% if domain.xpt_file %}
+                                                <a href="{% url 'builder:download_domain_file' study.study_id 'xpt' domain.domain.code %}" 
+                                                   class="btn btn-outline-info download-btn">
+                                                    <i class="fas fa-file-export"></i> XPT
+                                                </a>
+                                                {% endif %}
+                                                <button class="btn btn-outline-secondary" 
+                                                        onclick="previewDomain('{{ domain.domain.code }}', {{ domain.content|length }})"
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#previewModal">
+                                                    <i class="fas fa-eye"></i> Preview
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No domains have been extracted yet.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- FDA Files -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-file-medical"></i> FDA Submission Files</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if fda_files %}
+                        <div class="row">
+                            {% for fda_file in fda_files %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="file-card p-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="fas fa-file-alt text-primary me-2 fs-4"></i>
+                                        <div>
+                                            <h6 class="mb-0">{{ fda_file.name }}</h6>
+                                            <small class="text-muted">
+                                                {% if fda_file.file %}
+                                                    {{ fda_file.file.size|filesizeformat }}
+                                                {% else %}
+                                                    N/A
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid">
+                                        {% if fda_file.file %}
+                                        <a href="{% url 'builder:download_file' study.study_id 'fda' %}?filename={{ fda_file.name }}" 
+                                           class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download"></i> Download
+                                        </a>
+                                        {% else %}
+                                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                                            <i class="fas fa-exclamation-circle"></i> Not Available
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            No FDA files generated yet. 
+                            <a href="{% url 'builder:dashboard' study.study_id %}" class="alert-link">
+                                Go back to generate FDA files.
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-eye"></i> Domain Preview: <span id="previewDomainCode"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="previewContent">
+                        <div class="text-center">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="downloadPreviewData">
+                        <i class="fas fa-download"></i> Download CSV
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block styles %}
+ <style>
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+        .domain-table {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .file-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .file-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .download-btn {
+            min-width: 120px;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+    <script>
+        const studyId = {{ study.study_id }};
+        console.log({studyId})
+        
+        async function previewDomain(domainCode, recordCount) {
+            document.getElementById('previewDomainCode').textContent = domainCode;
+            document.getElementById('downloadPreviewData').onclick = () => {
+                window.location.href = `/extraction/${studyId}/download/csv/${domainCode}/`;
+            };
+            
+            // Show loading
+            document.getElementById('previewContent').innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading ${recordCount} records...</span>
+                    </div>
+                    <p class="mt-2">Loading ${recordCount} records...</p>
+                </div>
+            `;
+            
+            try {
+                // Fetch the CSV data for preview
+                const response = await fetch(`/extraction/${studyId}/download/csv/${domainCode}/`);
+                const csvData = await response.text();
+                
+                // Parse CSV and create table
+                const lines = csvData.split('\n').filter(line => line.trim());
+                const headers = lines[0].split(',');
+                const rows = lines.slice(1, 11); // Show first 10 rows
+                
+                let tableHtml = `
+                    <div class="mb-3">
+                        <span class="badge bg-info">${recordCount} total records</span>
+                        <span class="badge bg-secondary">Showing first 10 rows</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                `;
+                
+                headers.forEach(header => {
+                    tableHtml += `<th>${header.replace(/"/g, '')}</th>`;
+                });
+                
+                tableHtml += '</tr></thead><tbody>';
+                
+                rows.forEach(row => {
+                    const cells = row.split(',');
+                    tableHtml += '<tr>';
+                    cells.forEach(cell => {
+                        tableHtml += `<td>${cell.replace(/"/g, '')}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                });
+                
+                tableHtml += '</tbody></table></div>';
+                
+                document.getElementById('previewContent').innerHTML = tableHtml;
+                
+            } catch (error) {
+                document.getElementById('previewContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Error loading preview: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function downloadAllFiles() {
+            // Create a temporary form to download multiple files
+            const domains = {{ extracted_domains|length }};
+            const fdaFiles = {{ total_fda_files }};
+            
+            if (domains === 0 && fdaFiles === 0) {
+                alert('No files available for download.');
+                return;
+            }
+            
+            if (confirm(`Download all available files (${domains} domain files + ${fdaFiles} FDA files)?`)) {
+                // Download domain files
+                {% for domain in extracted_domains %}
+                setTimeout(() => {
+                    window.open('/extraction/{{ study.id }}/download/csv/{{ domain.domain.code }}/', '_blank');
+                }, {{ forloop.counter0 }} * 500);
+                
+                {% if domain.xpt_file %}
+                setTimeout(() => {
+                    window.open('/extraction/{{ study.id }}/download/xpt/{{ domain.domain.code }}/', '_blank');
+                }, ({{ forloop.counter0 }} * 500) + 250);
+                {% endif %}
+                {% endfor %}
+                
+                // Download FDA files
+                {% for fda_file in fda_files %}
+                {% if fda_file.file %}
+                setTimeout(() => {
+                    window.open('/extraction/{{ study.id }}/download/fda/?filename={{ fda_file.name }}', '_blank');
+                }, ({{ extracted_domains|length }} * 500) + ({{ forloop.counter0 }} * 300));
+                {% endif %}
+                {% endfor %}
+            }
+        }
+        
+        // Add tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+{% endblock  %}

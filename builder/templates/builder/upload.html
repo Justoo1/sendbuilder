@@ -1,0 +1,338 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Upload Study - SENDBuilder AI{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-upload me-2"></i>
+                    Upload New Study
+                </h4>
+                <small class="text-muted">Upload a PDF study document and provide basic information</small>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    
+                    <!-- Study Information Section -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Study Information
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.study_number.id_for_label }}" class="form-label">
+                                        Study ID <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.study_number }}
+                                    {% if form.study_number.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.study_number.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="form-text">Unique identifier for this study</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.study_sponsor.id_for_label }}" class="form-label">Sponsor</label>
+                                    {{ form.study_sponsor }}
+                                    {% if form.study_sponsor.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.study_sponsor.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                Study Title <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.title.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Brief description of the study (optional)</div>
+                        </div>
+                    </div>
+
+                    <!-- Study Details Section -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-flask me-2"></i>Study Details
+                        </h5>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.study_type.id_for_label }}" class="form-label">Study Type</label>
+                                    {{ form.study_type }}
+                                    {% if form.study_type.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.study_type.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.species.id_for_label }}" class="form-label">Species</label>
+                                    {{ form.species }}
+                                    {% if form.species.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.species.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
+                                    {{ form.start_date }}
+                                    {% if form.start_date.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.start_date.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="mb-4">
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-file-pdf me-2"></i>Study Document
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.study_file.id_for_label }}" class="form-label">
+                                PDF File <span class="text-danger">*</span>
+                            </label>
+                            <div class="upload-area border-2 border-dashed rounded p-4 text-center" id="uploadArea">
+                                {{ form.study_file }}
+                                <div class="upload-text">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="mb-2">Drag and drop your PDF file here or click to browse</p>
+                                    <small class="text-muted">Maximum file size: 50MB</small>
+                                </div>
+                            </div>
+                            {% if form.study_file.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.study_file.errors.0 }}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- File preview -->
+                            <div id="filePreview" class="mt-3" style="display: none;">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-file-pdf me-2"></i>
+                                    <span id="fileName"></span>
+                                    <span id="fileSize" class="ms-2 text-muted"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'builder:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-upload me-2"></i>Upload Study
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>Upload Guidelines
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Supported File Types</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>PDF documents</li>
+                            <li><i class="fas fa-info text-info me-2"></i>Maximum size: 50MB</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Best Practices</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-lightbulb text-warning me-2"></i>Use clear, descriptive study IDs</li>
+                            <li><i class="fas fa-lightbulb text-warning me-2"></i>Include complete study information</li>
+                            <li><i class="fas fa-lightbulb text-warning me-2"></i>Ensure PDF is text-searchable</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative; /* Add this */
+    }
+    
+    .upload-area:hover {
+        border-color: #007bff !important;
+        background-color: #f8f9ff;
+    }
+    
+    .upload-area.dragover {
+        border-color: #007bff !important;
+        background-color: #e3f2fd;
+    }
+    
+    #id_study_file {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+        top: 0; /* Add this */
+        left: 0; /* Add this */
+        z-index: 1; /* Add this to ensure it's above the text but below buttons */
+    }
+    
+    .upload-text {
+        pointer-events: none;
+        position: relative;
+        z-index: 0;
+    }
+    
+    /* Ensure buttons have higher z-index */
+    .btn {
+        position: relative;
+        z-index: 10;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInput = document.getElementById('id_study_file');
+    const filePreview = document.getElementById('filePreview');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadForm = document.getElementById('uploadForm');
+
+    // Handle file selection
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            showFilePreview(file);
+        }
+    });
+
+    // Handle drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.type === 'application/pdf') {
+                fileInput.files = files;
+                showFilePreview(file);
+            } else {
+                alert('Please select a PDF file.');
+            }
+        }
+    });
+
+    function showFilePreview(file) {
+        fileName.textContent = file.name;
+        fileSize.textContent = `(${formatFileSize(file.size)})`;
+        filePreview.style.display = 'block';
+        
+        // Hide upload text
+        uploadArea.querySelector('.upload-text').style.display = 'none';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Form validation
+    uploadForm.addEventListener('submit', function(e) {
+        const studyId = document.getElementById('id_study_id').value.trim();
+        const title = document.getElementById('id_title').value.trim();
+        const pdfFile = fileInput.files[0];
+
+        if (!studyId || !title || !pdfFile) {
+            e.preventDefault();
+            alert('Please fill in all required fields and select a PDF file.');
+            return;
+        }
+
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+    });
+
+    // Auto-generate study ID based on title (optional helper)
+    document.getElementById('id_title').addEventListener('blur', function() {
+        const title = this.value.trim();
+        const studyIdField = document.getElementById('id_study_id');
+        
+        if (title && !studyIdField.value.trim()) {
+            // Simple study ID generation
+            const studyId = title.replace(/[^a-zA-Z0-9]/g, '').substring(0, 20).toUpperCase();
+            if (studyId) {
+                studyIdField.value = studyId + '_' + new Date().getFullYear();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+[project]
+name = "sendbuilder"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django==5.2",
+    "django-widget-tweaks>=1.5.0",
+    "langchain>=0.3.25",
+    "langchain-community>=0.3.25",
+    "langchain-core>=0.3.65",
+    "langchain-ollama>=0.3.3",
+    "langchain-openai>=0.3.24",
+    "langgraph>=0.4.8",
+    "ollama>=0.5.1",
+    "pandas>=2.3.0",
+    "pdfplumber>=0.11.7",
+    "pillow>=11.2.1",
+    "psycopg2>=2.9.10",
+    "pypdf2>=3.0.1",
+    "xport>=3.2.1",
+]

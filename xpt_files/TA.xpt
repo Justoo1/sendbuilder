@@ -1,0 +1,10 @@
+"""STUDYID",ARM,ARMCD,DOMAIN,ELEMENT,ETCD,STUDYID,TAETORD
+,SOPH-110S 30 mg/kg,G1,TA,,Treatment,1124-8751,T001
+,,please provide more details or context.,TA,,,"Note: Since the provided text does not contain any information about ""Element Occurrence Ordinal"" (TAETORD) for each arm",
+,,you would need to extract this information from the study document accurately.,TA,,,Note: Since there is no specific information about the planned treatment arms in the provided text,
+,1,Normal,TA,,,TA,
+,,,TA,,,I have left those columns empty. If you need to extract more data,
+,,,TA,,,note that the TAETORD column is a sequence number,
+TA,1,Vehicle Control,TA,,,,
+,"I have used ""TBD"" (To Be Determined) as a placeholder. In a real-world scenario",and G4) regarding the dose of SOPH-110S,TA,,,Note: Since the text does not provide specific information for each group (G2,this would typically be replaced with actual data from the study.
+,and CONTROL) for illustration purposes. In a real-world scenario,G2,TA,,,Note: Since there is no explicit mention of planned treatment arms in the provided text,you would extract this information from the study protocol or other relevant documents.

@@ -1,0 +1,152 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ODM xmlns="http://www.cdisc.org/ns/odm/v1.3" xmlns:def="http://www.cdisc.org/ns/def/v2.1" xmlns:xlink="http://www.w3.org/1999/xlink" FileType="Snapshot" FileOID="define_23" CreationDateTime="2025-06-20T17:05:32.512822">
+  <Study OID="STUDY_23">
+    <GlobalVariables>
+      <StudyName>A Maximum Tolerated Dose Study of SOPH-110S</StudyName>
+      <StudyDescription>A Maximum Tolerated Dose Study of SOPH-110S Administered 
+to Rats via Intravenous Bolus Injection 
+Attentive Science Study No. 
+1124-8751 
+Sponsor: 
+Sophrosyne Pharmaceuticals Limited 
+540 W Madison St, Suite 2500 
+Chicago, IL 60661, USA 
+Test Facility: 
+Attentive Science 
+17745 Metcalf Avenue 
+Building #4 
+Stilwell, KS 66085, USA</StudyDescription>
+      <ProtocolName>Protocol_23</ProtocolName>
+    </GlobalVariables>
+    <MetaDataVersion OID="MDV.1" Name="Metadata Version 1" Description="SEND Metadata" def:DefineVersion="2.1" def:StandardName="SEND" def:StandardVersion="3.1">
+      <ItemGroupDef OID="IG.TS" Name="TS" Repeating="Yes" SASDatasetName="TS" Domain="TS" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.TS">
+        <Description>
+          <TranslatedText xml:lang="en">High-level protocol parameters and settings.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.TS.TSSEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.TS.TSVAL" Mandatory="No" />
+        <ItemRef ItemOID="IT.TS.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.TS.TSPARM" Mandatory="No" />
+        <ItemRef ItemOID="IT.TS.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.TS.TSPARMCD" Mandatory="No" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.DS" Name="DS" Repeating="Yes" SASDatasetName="DS" Domain="DS" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.DS">
+        <Description>
+          <TranslatedText xml:lang="en">Subject status and study events like death or early termination.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.DS.DSSEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.DS.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.DS.DSTERM" Mandatory="No" />
+        <ItemRef ItemOID="IT.DS.DSDECOD" Mandatory="No" />
+        <ItemRef ItemOID="IT.DS.DSSTDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.DS.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.DS.USUBJID" Mandatory="Yes" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.MA" Name="MA" Repeating="Yes" SASDatasetName="MA" Domain="MA" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.MA">
+        <Description>
+          <TranslatedText xml:lang="en">Gross necropsy findings observed in organs/tissues.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.MA.MADTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.MA.MALOC" Mandatory="No" />
+        <ItemRef ItemOID="IT.MA.MASEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.MA.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.MA.MATEST" Mandatory="No" />
+        <ItemRef ItemOID="IT.MA.MAORRES" Mandatory="No" />
+        <ItemRef ItemOID="IT.MA.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.MA.USUBJID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.MA.MASTRESC" Mandatory="No" />
+        <ItemRef ItemOID="IT.MA.MATESTCD" Mandatory="No" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.DM" Name="DM" Repeating="Yes" SASDatasetName="DM" Domain="DM" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.DM">
+        <Description>
+          <TranslatedText xml:lang="en">Subject-level information such as species, strain, sex, etc.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.DM.ARM" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.SEX" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.ARMCD" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.DM.STRAIN" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.SUBJID" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.RFSTDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.SPECIES" Mandatory="No" />
+        <ItemRef ItemOID="IT.DM.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.DM.USUBJID" Mandatory="Yes" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.CL" Name="CL" Repeating="Yes" SASDatasetName="CL" Domain="CL" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.CL">
+        <Description>
+          <TranslatedText xml:lang="en">Clinical signs recorded during the study.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.CL.CCAT" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CLCAT" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CLDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CLLOC" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CLSEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.C LDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CLTEST" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CULDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.CL.CLORRES" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.CL.USUBJID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.CL.CLSTRESC" Mandatory="No" />
+        <ItemRef ItemOID="IT.CL.CLTESTCD" Mandatory="No" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.FW" Name="FW" Repeating="Yes" SASDatasetName="FW" Domain="FW" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.FW">
+        <Description>
+          <TranslatedText xml:lang="en">Daily food and water consumption measurements for animals.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.FW.FWDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.FW.FWSEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.FW.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.FW.FWTEST" Mandatory="No" />
+        <ItemRef ItemOID="IT.FW.FWORRES" Mandatory="No" />
+        <ItemRef ItemOID="IT.FW.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.FW.USUBJID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.FW.FWORRESU" Mandatory="No" />
+        <ItemRef ItemOID="IT.FW.FWTESTCD" Mandatory="No" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.TA" Name="TA" Repeating="Yes" SASDatasetName="TA" Domain="TA" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.TA">
+        <Description>
+          <TranslatedText xml:lang="en">Defined treatment groups.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.TA.ARM" Mandatory="No" />
+        <ItemRef ItemOID="IT.TA.ETCD" Mandatory="No" />
+        <ItemRef ItemOID="IT.TA.ARMCD" Mandatory="No" />
+        <ItemRef ItemOID="IT.TA.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.TA.ELEMENT" Mandatory="No" />
+        <ItemRef ItemOID="IT.TA.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.TA.TAETORD" Mandatory="No" />
+        <ItemRef ItemOID="IT.TA.&quot;STUDYID" Mandatory="No" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.BW" Name="BW" Repeating="Yes" SASDatasetName="BW" Domain="BW" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.BW">
+        <Description>
+          <TranslatedText xml:lang="en">Weights collected across time points.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.BW.BWDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.BW.BWSEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.BW.BWTEST" Mandatory="No" />
+        <ItemRef ItemOID="IT.BW.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.BW.BWORRES" Mandatory="No" />
+        <ItemRef ItemOID="IT.BW.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.BW.USUBJID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.BW.BWORRESU" Mandatory="No" />
+        <ItemRef ItemOID="IT.BW.BWTESTCD" Mandatory="No" />
+      </ItemGroupDef>
+      <ItemGroupDef OID="IG.EX" Name="EX" Repeating="Yes" SASDatasetName="EX" Domain="EX" def:Structure="One record per finding" def:Class="FINDINGS" def:ArchiveLocationID="LF.EX">
+        <Description>
+          <TranslatedText xml:lang="en">Dosing information for each subject.</TranslatedText>
+        </Description>
+        <ItemRef ItemOID="IT.EX.EXSEQ" Mandatory="No" />
+        <ItemRef ItemOID="IT.EX.EXTRT" Mandatory="No" />
+        <ItemRef ItemOID="IT.EX.DOMAIN" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.EX.EXDOSE" Mandatory="No" />
+        <ItemRef ItemOID="IT.EX.EXDOSU" Mandatory="No" />
+        <ItemRef ItemOID="IT.EX.EXROUTE" Mandatory="No" />
+        <ItemRef ItemOID="IT.EX.EXSTDTC" Mandatory="No" />
+        <ItemRef ItemOID="IT.EX.STUDYID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.EX.USUBJID" Mandatory="Yes" />
+        <ItemRef ItemOID="IT.EX.EXDOSFRQ" Mandatory="No" />
+      </ItemGroupDef>
+    </MetaDataVersion>
+  </Study>
+</ODM>

@@ -19,5 +19,6 @@ dependencies = [
     "pillow>=11.2.1",
     "psycopg2>=2.9.10",
     "pypdf2>=3.0.1",
+    "pyreadstat>=1.2.9",
     "xport>=3.2.1",
 ]

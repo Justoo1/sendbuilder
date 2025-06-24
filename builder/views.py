@@ -19,6 +19,7 @@ import threading
 from datetime import datetime
 
 from builder.models import Domain, Study, StudyContent, DetectedDomain, ExtractedDomain, FDAFile
+from ai.models import AIModel
 from builder.forms import StudyUploadForm
 from .utils.pdf_processor import process_study_pdf
 from .utils.send_domain_detector import detect_domains_for_study, get_detection_summary
@@ -32,8 +33,16 @@ logger = logging.getLogger(__name__)
 
 def home(request):
     domains = Domain.objects.all()
+    studies = Study.objects.all()
+    ai_models = AIModel.objects.all()
     context = {
-        'domains': domains
+        'domains': domains,
+        'studies': studies,
+        'ai_models': ai_models,
+        'total_studies': studies.count(),
+        'completed_studies': studies.filter(status='completed').count(),
+        'in_progress_studies': studies.filter(status='in_progress').count(),
+        'total_ai_models': ai_models.count(),
     }
     return render(request, 'builder/home.html', context)
 

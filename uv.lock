@@ -1195,6 +1195,27 @@ wheels = [
 ]
 
 [[package]]
+name = "pyreadstat"
+version = "1.2.9"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pandas" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b1/7e/25f1e328accc41726ada3bb88bd701e17a14ddbf7ab124d181d4e4075783/pyreadstat-1.2.9.tar.gz", hash = "sha256:bc4ff137b70013869727926867cf3c175ac56fd4e4a1d0e4317b559d8487ee4f", size = 565303, upload-time = "2025-05-17T10:33:11.089Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/dd/e8a18d1c46f369d73751da0a4fc023751eebca364543970a94562fe2011e/pyreadstat-1.2.9-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:5a6ddca6f163b8085ff3ca451a1282ea7cf8aca41361b2b3ad17512d533baa4c", size = 612864, upload-time = "2025-05-17T10:32:43.12Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/a6/6a0440d74b403e956e3644ceb24fe485540fbefeed7a7d9e9127ee2c8219/pyreadstat-1.2.9-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:37778a5011b89aa5394f9ab62907ce7a31458628a86e1ec7e2ef918aa982923b", size = 612105, upload-time = "2025-05-17T10:32:45.264Z" },
+    { url = "https://files.pythonhosted.org/packages/92/f3/cc57167643a8d2ce283ae04d11742b317f990a565223a629e1e0010ea9b3/pyreadstat-1.2.9-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:12ba3e801c5c96a26fa2d640c6a506d8a0824bb7fb40d04fe10cb88a23b7a121", size = 627581, upload-time = "2025-05-17T10:32:47.74Z" },
+    { url = "https://files.pythonhosted.org/packages/d3/ed/1e29bbe1d74fb0a226101fe9eae672e99f2eedf39f7f4788e7a4dfa5cada/pyreadstat-1.2.9-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a68650f381c3d28e50234b6a5487f86bd4ae4aeed035f881acff2f5567a79df6", size = 659123, upload-time = "2025-05-17T10:32:49.884Z" },
+    { url = "https://files.pythonhosted.org/packages/bc/11/1a7982ec191cb8e591978fb360c7ced3077ebcddcea1ade144d28044f498/pyreadstat-1.2.9-cp312-cp312-win_amd64.whl", hash = "sha256:2ac0c92aec8fff4e05767ac9b9713b87dc5349244b9b2007095ac7a21fbee08b", size = 2387510, upload-time = "2025-05-17T10:32:53.563Z" },
+    { url = "https://files.pythonhosted.org/packages/a9/f5/cea5d3eb7e599ebb61c17e7f3baa756b884c5646c1314d46b0a6254bdf9c/pyreadstat-1.2.9-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:6f79035db902c7551c11fd1d96fac010a34a7f03e7acc4c2c3c98e297d3e9c30", size = 612319, upload-time = "2025-05-17T10:32:55.892Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/8f/c9a123afb4dddd65a513386b5ce170a38ffa89678c5d68c465c445c2273a/pyreadstat-1.2.9-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:32824454b92f33b70a02f92995c0bbafe4d9f25afaf592db242ee33fea74d386", size = 611790, upload-time = "2025-05-17T10:32:58.531Z" },
+    { url = "https://files.pythonhosted.org/packages/4c/51/467031fc1c074e313c0946702b40581bc772d25585525b97a4ecf1b19a84/pyreadstat-1.2.9-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:35ea2c6fd421c49e4d65e1956d24a2a66620e4fc54dcc2bbb4a91e91cf73ff70", size = 627207, upload-time = "2025-05-17T10:33:00.82Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/8b/635a4f7e5cfa75f450db76f94cf3825b38d85a00745638288af56f8328bf/pyreadstat-1.2.9-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f8037fa2cf2b210d713f7e6d94f4bd0050b269cb989386283e703c26f75eae8b", size = 658571, upload-time = "2025-05-17T10:33:03.272Z" },
+    { url = "https://files.pythonhosted.org/packages/13/c0/be18a495f8db2b92f57ecfc176b61b806c03bbc8b733cdfd0cedbdb1f120/pyreadstat-1.2.9-cp313-cp313-win_amd64.whl", hash = "sha256:45697a370502fc2a2d102b4643c1211966e410bdff98e0f287eac26943653bc9", size = 2391467, upload-time = "2025-05-17T10:33:08.4Z" },
+]
+
+[[package]]
 name = "python-dateutil"
 version = "2.9.0.post0"
 source = { registry = "https://pypi.org/simple" }
@@ -1334,6 +1355,7 @@ dependencies = [
     { name = "pillow" },
     { name = "psycopg2" },
     { name = "pypdf2" },
+    { name = "pyreadstat" },
     { name = "xport" },
 ]
 
@@ -1353,6 +1375,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "psycopg2", specifier = ">=2.9.10" },
     { name = "pypdf2", specifier = ">=3.0.1" },
+    { name = "pyreadstat", specifier = ">=1.2.9" },
     { name = "xport", specifier = ">=3.2.1" },
 ]
 

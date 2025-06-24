@@ -65,7 +65,7 @@
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                             Processing
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ processing_studies|default:0 }}</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ in_progress_studies|default:0 }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-cogs fa-2x text-gray-300"></i>
@@ -81,9 +81,9 @@
                 <div class="row">
                     <div class="col">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                            AI Tasks
+                            AI Models
                         </div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ai_tasks|default:0 }}</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_ai_models|default:0 }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-robot fa-2x text-gray-300"></i>
@@ -105,7 +105,7 @@
                 {% comment %} {% url 'extractor:home' %} {% endcomment %}
             </div>
             <div class="card-body">
-                {% if recent_studies %}
+                {% if studies %}
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead>
@@ -119,11 +119,11 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for study in recent_studies %}
+                                {% for study in studies %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'extractor:study_detail' study.pk %}" class="text-decoration-none">
-                                            {{ study.study_id }}
+                                        <a href="{% url 'builder:dashboard' study.pk %}" class="text-decoration-none">
+                                            {{ study.study_number }}
                                         </a>
                                     </td>
                                     <td>{{ study.title|truncatechars:30 }}</td>
@@ -156,14 +156,14 @@
                                     <td>{{ study.created_at|date:"M d, Y" }}</td>
                                     <td>
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{% url 'extractor:study_detail' study.pk %}" class="btn btn-outline-primary">
+                                            <a href="{% url 'builder:dashboard' study.pk %}" class="btn btn-outline-primary">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            {% if not study.is_processing %}
-                                                <a href="{% url 'extractor:process_study' study.pk %}" class="btn btn-outline-success">
+                                            {% comment %} {% if not study.is_processing %}
+                                                <a href="{% url 'builder:process_study' study.pk %}" class="btn btn-outline-success">
                                                     <i class="fas fa-play"></i>
                                                 </a>
-                                            {% endif %}
+                                            {% endif %} {% endcomment %}
                                         </div>
                                     </td>
                                 </tr>
@@ -202,9 +202,8 @@
                         <i class="fas fa-hammer me-2"></i>Build XPT Files
                         {% comment %} {% url 'builder:home' %} {% endcomment %}
                     </a>
-                    <a href="#" class="btn btn-outline-primary">
-                        <i class="fas fa-robot me-2"></i>AI Agent Dashboard
-                        {% comment %} {% url 'ai_agent:dashboard' %} {% endcomment %}
+                    <a href="{% url 'ai:aimodel_list' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-robot me-2"></i>AI Agent Model Config
                     </a>
                     <a href="" class="btn btn-outline-secondary">
                         <i class="fas fa-list me-2"></i>View All Extractions
@@ -220,39 +219,56 @@
                 <h6 class="m-0 font-weight-bold text-primary">System Status</h6>
             </div>
             <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-6">
-                        <div class="border-end">
-                            <div class="h6 mb-0 text-success">
-                                <i class="fas fa-circle me-1"></i>Online
+                {% if ai_models %}
+                    {% for ai_model in ai_models %}
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    {% if ai_model.is_available %}
+                                        <div class="h6 mb-0 text-success">
+                                            <i class="fas fa-circle me-1"></i>online
+                                        </div>
+                                    {% else %}
+                                        <div class="h6 mb-0 text-warning">
+                                            <i class="fas fa-circle me-1"></i>Offline
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <small class="text-muted">AI Agent</small>
+                                </div>
                             </div>
-                            <small class="text-muted">AI Agent</small>
+                            <div class="col-6">
+                                {% if ai_model.is_available %}
+                                    <div class="h6 mb-0 text-success">
+                                        <i class="fas fa-circle me-1"></i>Ready
+                                    </div>
+                                {% else %}
+                                    <div class="h6 mb-0 text-warning">
+                                        <i class="fas fa-circle me-1"></i>Not Ready
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">{{ai_model.provider}}</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="h6 mb-0 text-success">
-                            <i class="fas fa-circle me-1"></i>Ready
+                    
+                        <hr>
+                
+                        <div class="small">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>SENDIG Version:</span>
+                                <span class="badge bg-primary">3.1</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>AI Model:</span>
+                                <span class="text-muted">{{ai_model.name}}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Processing Mode:</span>
+                                <span class="text-success">Local</span>
+                            </div>
                         </div>
-                        <small class="text-muted">Ollama</small>
-                    </div>
-                </div>
-                
-                <hr>
-                
-                <div class="small">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>SENDIG Version:</span>
-                        <span class="badge bg-primary">3.1</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>AI Model:</span>
-                        <span class="text-muted">DeepSeek-R1</span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Processing Mode:</span>
-                        <span class="text-success">Local</span>
-                    </div>
-                </div>
+                    {% endfor %}
+                {% endif %}
             </div>
         </div>
     </div>

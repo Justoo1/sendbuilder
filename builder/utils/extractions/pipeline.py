@@ -574,65 +574,63 @@ class SimpleExtractionPipeline:
         return ""
     
     def _generate_xpt_file(self, df: pd.DataFrame, domain_code: str) -> Optional[bytes]:
-        """Generate proper XPT file from DataFrame using xport library"""
+        """Generate proper XPT file from DataFrame using pyreadstat"""
+        logger.debug(f"Generating XPT file for domain {domain_code} with {len(df)} records")
+        
         try:
-            import xport
-            from datetime import datetime
+            import pyreadstat
+            import tempfile
+            import os
             
-            logger.debug(f"Generating XPT file for domain {domain_code} with {len(df)} records")
+            # Prepare DataFrame for SAS format
+            df_sas = self._prepare_dataframe_for_sas(df, domain_code)
             
-            # Prepare DataFrame for XPT format
-            df_for_xpt = df.copy()
+            # Create temporary file
+            with tempfile.NamedTemporaryFile(suffix='.xpt', delete=False) as tmp_file:
+                temp_path = tmp_file.name
             
-            # Ensure all column names are uppercase and max 8 characters (SAS requirement)
-            column_mapping = {}
-            for col in df_for_xpt.columns:
-                clean_col = col.upper()[:8]
-                column_mapping[col] = clean_col
-            
-            df_for_xpt = df_for_xpt.rename(columns=column_mapping)
-            
-            # Convert data types appropriately for SAS
-            for col in df_for_xpt.columns:
-                if df_for_xpt[col].dtype == 'object':
-                    # String columns - ensure they're proper strings and limit length
-                    df_for_xpt[col] = df_for_xpt[col].astype(str).str[:200]  # Limit string length
-                elif df_for_xpt[col].dtype in ['int64', 'float64']:
-                    # Numeric columns - ensure they're float (SAS numeric type)
-                    df_for_xpt[col] = pd.to_numeric(df_for_xpt[col], errors='coerce')
-            
-            # Fill any NaN values
-            df_for_xpt = df_for_xpt.fillna('')
-            
-            logger.debug(f"Prepared DataFrame columns: {list(df_for_xpt.columns)}")
-            logger.debug(f"DataFrame dtypes: {df_for_xpt.dtypes.to_dict()}")
-            
-            # Create XPT dataset with metadata
-            dataset = xport.Dataset(
-                df_for_xpt,
-                name=domain_code.upper(),
-                label=f"{domain_code} Domain Data",
-                created=datetime.now()
-            )
-            
-            # Generate XPT content
-            buffer = io.BytesIO()
-            with xport.XportWriter(buffer, created=datetime.now()) as writer:
-                writer.write(dataset)
-            
-            xpt_content = buffer.getvalue()
-            logger.debug(f"Generated XPT file: {len(xpt_content)} bytes")
-            
-            return xpt_content
-            
+            try:
+                # Create variable labels dictionary
+                variable_labels = {}
+                for col in df_sas.columns:
+                    if col == 'STUDYID':
+                        variable_labels[col] = 'Study Identifier'
+                    elif col == 'DOMAIN':
+                        variable_labels[col] = 'Domain Abbreviation'
+                    elif col == 'USUBJID':
+                        variable_labels[col] = 'Unique Subject Identifier'
+                    elif col.endswith('SEQ'):
+                        variable_labels[col] = 'Sequence Number'
+                    else:
+                        variable_labels[col] = col.replace('_', ' ').title()
+                
+                # Write XPT file using pyreadstat - CORRECTED PARAMETERS
+                pyreadstat.write_xport(
+                    df_sas,
+                    temp_path,
+                    table_name=domain_code.upper()[:8],
+                    file_format_version=5
+                )
+                
+                # Read the generated file
+                with open(temp_path, 'rb') as f:
+                    xpt_content = f.read()
+                
+                logger.info(f"Generated XPT file with pyreadstat: {len(xpt_content)} bytes")
+                return xpt_content
+                
+            finally:
+                # Clean up temporary file
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                    
         except ImportError:
-            logger.warning("xport library not available, falling back to CSV")
+            logger.warning("pyreadstat not available, falling back to CSV")
             return self._generate_csv_as_xpt_fallback(df, domain_code)
         except Exception as e:
             logger.error(f"Error generating XPT file: {e}", exc_info=True)
             logger.warning("Falling back to CSV format")
             return self._generate_csv_as_xpt_fallback(df, domain_code)
-    
     def _generate_csv_as_xpt_fallback(self, df: pd.DataFrame, domain_code: str) -> Optional[bytes]:
         """Fallback method - save as CSV with .xpt extension for compatibility"""
         try:
@@ -642,6 +640,186 @@ class SimpleExtractionPipeline:
         except Exception as e:
             logger.error(f"Error generating CSV fallback: {e}")
             return None
+
+    def _generate_xpt_with_pyreadstat(self, df: pd.DataFrame, domain_code: str) -> Optional[bytes]:
+        """Generate XPT using pyreadstat - most SAS-compatible method"""
+        import pyreadstat
+        import tempfile
+        import os
+        
+        try:
+            # Prepare DataFrame for SAS format
+            df_sas = self._prepare_dataframe_for_sas(df, domain_code)
+            
+            # Create temporary file
+            with tempfile.NamedTemporaryFile(suffix='.xpt', delete=False) as tmp_file:
+                temp_path = tmp_file.name
+            
+            try:
+                # Create variable labels dictionary
+                variable_labels = {}
+                for col in df_sas.columns:
+                    if col == 'STUDYID':
+                        variable_labels[col] = 'Study Identifier'
+                    elif col == 'DOMAIN':
+                        variable_labels[col] = 'Domain Abbreviation'
+                    elif col == 'USUBJID':
+                        variable_labels[col] = 'Unique Subject Identifier'
+                    elif col.endswith('SEQ'):
+                        variable_labels[col] = 'Sequence Number'
+                    else:
+                        variable_labels[col] = col.replace('_', ' ').title()
+                
+                # Write XPT file using pyreadstat
+                pyreadstat.write_xport(
+                    df_sas,
+                    temp_path,
+                    table_name=domain_code.upper()[:8],  # SAS table name limit
+                    label=f"{domain_code} Domain Data",
+                    variable_labels=variable_labels,
+                    file_encoding='utf-8'
+                )
+                
+                # Read the generated file
+                with open(temp_path, 'rb') as f:
+                    xpt_content = f.read()
+                
+                logger.info(f"Generated XPT file with pyreadstat: {len(xpt_content)} bytes")
+                return xpt_content
+                
+            finally:
+                # Clean up temporary file
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                    
+        except Exception as e:
+            logger.error(f"Error in pyreadstat XPT generation: {e}", exc_info=True)
+            raise
+
+    def _generate_xpt_with_pandas(self, df: pd.DataFrame, domain_code: str) -> Optional[bytes]:
+        """Generate XPT using pandas - alternative method"""
+        import tempfile
+        import os
+        
+        try:
+            # Prepare DataFrame for SAS format
+            df_sas = self._prepare_dataframe_for_sas(df, domain_code)
+            
+            # Create temporary file
+            with tempfile.NamedTemporaryFile(suffix='.xpt', delete=False) as tmp_file:
+                temp_path = tmp_file.name
+            
+            try:
+                # Use pandas to_stata as intermediate step for better SAS compatibility
+                # First convert to Stata format to ensure proper data type handling
+                stata_path = temp_path.replace('.xpt', '.dta')
+                
+                # Prepare for Stata (which has similar restrictions to SAS)
+                df_stata = df_sas.copy()
+                
+                # Convert string columns and handle encoding
+                for col in df_stata.columns:
+                    if df_stata[col].dtype == 'object':
+                        # Ensure strings are properly encoded and not too long
+                        df_stata[col] = df_stata[col].astype(str).str.encode('utf-8', errors='ignore').str.decode('utf-8')
+                        df_stata[col] = df_stata[col].str[:244]  # Stata string limit
+                
+                # Write to Stata first (this ensures proper formatting)
+                df_stata.to_stata(
+                    stata_path,
+                    write_index=False,
+                    data_label=f"{domain_code} Domain Data",
+                    variable_labels={col: col.replace('_', ' ').title() for col in df_stata.columns}
+                )
+                
+                # Now use pandas to write XPT
+                df_sas.to_xport(temp_path, table_name=domain_code.upper()[:8])
+                
+                # Read the generated file
+                with open(temp_path, 'rb') as f:
+                    xpt_content = f.read()
+                
+                logger.info(f"Generated XPT file with pandas: {len(xpt_content)} bytes")
+                return xpt_content
+                
+            finally:
+                # Clean up temporary files
+                for path in [temp_path, temp_path.replace('.xpt', '.dta')]:
+                    if os.path.exists(path):
+                        os.unlink(path)
+                        
+        except Exception as e:
+            logger.error(f"Error in pandas XPT generation: {e}", exc_info=True)
+            raise
+
+    def _prepare_dataframe_for_sas(self, df: pd.DataFrame, domain_code: str) -> pd.DataFrame:
+        """Prepare DataFrame for SAS XPT format with proper data types and constraints"""
+        df_prepared = df.copy()
+        
+        # Ensure DOMAIN column exists and is set correctly
+        df_prepared['DOMAIN'] = domain_code.upper()
+        
+        # SAS XPT format constraints
+        MAX_STRING_LENGTH = 200
+        MAX_COLUMN_NAME_LENGTH = 8
+        
+        # Fix column names for SAS compatibility
+        column_mapping = {}
+        for col in df_prepared.columns:
+            # SAS column names: max 8 chars, start with letter, alphanumeric + underscore only
+            clean_col = col.upper()
+            clean_col = ''.join(c for c in clean_col if c.isalnum() or c == '_')
+            if clean_col and not clean_col[0].isalpha():
+                clean_col = 'C' + clean_col  # Prefix with C if starts with number
+            clean_col = clean_col[:MAX_COLUMN_NAME_LENGTH]
+            
+            # Ensure uniqueness
+            base_col = clean_col
+            counter = 1
+            while clean_col in column_mapping.values():
+                clean_col = base_col[:6] + str(counter).zfill(2)
+                counter += 1
+                
+            column_mapping[col] = clean_col
+        
+        df_prepared = df_prepared.rename(columns=column_mapping)
+        
+        # Fix data types and values
+        for col in df_prepared.columns:
+            if df_prepared[col].dtype == 'object':
+                # String columns
+                df_prepared[col] = df_prepared[col].astype(str)
+                df_prepared[col] = df_prepared[col].replace(['nan', 'None', 'NaN'], '')
+                df_prepared[col] = df_prepared[col].str[:MAX_STRING_LENGTH]
+                # Remove any problematic characters
+                df_prepared[col] = df_prepared[col].str.replace(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', regex=True)
+            else:
+                # Numeric columns - convert to float64 (SAS numeric type)
+                df_prepared[col] = pd.to_numeric(df_prepared[col], errors='coerce')
+                df_prepared[col] = df_prepared[col].astype('float64')
+        
+        # Fill NaN values appropriately
+        for col in df_prepared.columns:
+            if df_prepared[col].dtype == 'object':
+                df_prepared[col] = df_prepared[col].fillna('')
+            else:
+                df_prepared[col] = df_prepared[col].fillna(0)
+        
+        # Ensure required CDISC columns are present and in correct order
+        required_cols = ['STUDYID', 'DOMAIN', 'USUBJID']
+        existing_cols = [col for col in required_cols if col in df_prepared.columns]
+        other_cols = [col for col in df_prepared.columns if col not in required_cols]
+        
+        # Reorder columns: required first, then others
+        final_cols = existing_cols + sorted(other_cols)
+        df_prepared = df_prepared[final_cols]
+        
+        logger.debug(f"Prepared DataFrame for SAS: {len(df_prepared)} rows, {len(df_prepared.columns)} columns")
+        logger.debug(f"Final columns: {list(df_prepared.columns)}")
+        logger.debug(f"Data types: {df_prepared.dtypes.to_dict()}")
+        
+        return df_prepared
+
 
 
 # For backward compatibility, create an alias

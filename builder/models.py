@@ -1,5 +1,23 @@
+import os
+from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
+
+
+def xpt_file_path(instance, filename):
+    """Generate a path for xpt files"""
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return os.path.join('xpt_files', timestamp, filename)
+
+def study_file_path(instance, filename):
+    """Generate a path for study files"""
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return os.path.join('study_files', timestamp, filename)
+
+def fda_document_path(instance, filename):
+    """Generate a path for fda files"""
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    return os.path.join('fda_documents', timestamp, filename)
 
 class Study(models.Model):
     """
@@ -16,7 +34,7 @@ class Study(models.Model):
     description = models.TextField()
     status = models.CharField(max_length=200, default='Draft')
     completed = models.BooleanField(default=False)
-    study_file = models.FileField(upload_to='study_files/', blank=True, null=True)
+    study_file = models.FileField(upload_to=study_file_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -151,7 +169,7 @@ class ExtractedDomain(models.Model):
     study = models.ForeignKey(Study, on_delete=models.CASCADE)
     domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
     content = models.JSONField() # this will be extracted content saved as list of dictionary
-    xpt_file = models.FileField(upload_to='xpt_files/', blank=True, null=True)
+    xpt_file = models.FileField(upload_to=xpt_file_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

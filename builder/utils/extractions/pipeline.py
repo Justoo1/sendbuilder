@@ -464,6 +464,7 @@ class SimpleExtractionPipeline:
             with transaction.atomic():
                 # Get the Domain object first
                 logger.debug(f"Looking up Domain object for code: {domain_code}")
+                df_for_json = df.fillna(value='-')
                 try:
                     from builder.models import Domain
                     domain = Domain.objects.get(code=domain_code)
@@ -477,12 +478,12 @@ class SimpleExtractionPipeline:
                 extracted_domain, created = ExtractedDomain.objects.get_or_create(
                     study_id=study_id,
                     domain=domain,  # Use domain object instead of domain__code
-                    defaults={'content': df.to_dict('records')}
+                    defaults={'content': df_for_json.to_dict('records')}
                 )
                 
                 if not created:
                     logger.debug("Updating existing ExtractedDomain record")
-                    extracted_domain.content = df.to_dict('records')
+                    extracted_domain.content = df_for_json.to_dict('records')
                     extracted_domain.save()
                 else:
                     logger.debug("Created new ExtractedDomain record")
@@ -503,6 +504,7 @@ class SimpleExtractionPipeline:
         except Exception as e:
             logger.error(f"Error saving results: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
+        
     
     def _fix_csv_formatting(self, csv_data: str) -> str:
         """Fix common CSV formatting issues"""

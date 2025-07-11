@@ -12,6 +12,19 @@ from typing import List, Tuple, Dict, Any
 class DomainValidator:
     """Utility class for domain-specific validation logic"""
     
+    # Add these as class constants
+    PROTOCOL_KEYWORDS = [
+        'protocol', 'amendment', 'objective', 'methodology', 'procedures will be',
+        'animals will be', 'study design', 'shall be', 'will be performed'
+    ]
+
+    DATA_TABLE_PATTERNS = [
+        r'Table\s+\d+:',
+        r'Animal\s+\d+.*\d+',
+        r'Group\s+\d+.*\d+',
+        r'Subject\s+\d+.*\d+'
+    ]
+    
     @staticmethod
     def validate_vital_signs(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
         """
@@ -171,351 +184,168 @@ class DomainValidator:
     @staticmethod
     def validate_demographics(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
         """
-        Validate DM (Demographics) domain detection
-        
-        Args:
-            content: Page content to validate
-            initial_confidence: Initial confidence score
-            evidence: List of evidence strings
-            
-        Returns:
-            Tuple of (adjusted_confidence, updated_evidence)
+        Enhanced DM (Demographics) domain validation
         """
         confidence = initial_confidence
         
-        # Check for actual demographic data
+        # Check for actual demographic data tables
         actual_dm_indicators = [
-            r'Subject\s+\d+',  # Subject IDs
-            r'Animal\s+\d+',  # Animal IDs
-            r'(Male|Female|M|F)\s*\d+',  # Sex with counts
-            r'Age:?\s*\d+',  # Age data
-            r'Weight:?\s*\d+',  # Weight data
-            r'Group\s+\d+.*\d+\s*(Male|Female)',  # Group assignments
-            r'Randomization',  # Randomization tables
+            r'Subject\s+\d+.*\d+.*(?:Male|Female|M|F)',  # Subject with age/weight and sex
+            r'Animal\s+\d+.*\d+\.?\d*\s*(?:g|kg).*(?:Male|Female|M|F)',  # Animal with weight and sex
+            r'Group\s+\d+.*\d+\s*(?:Male|Female).*\d+\s*(?:Male|Female)',  # Group demographics
+            r'Randomization.*Animal.*Group',  # Randomization tables
+            r'Table.*Demographics.*Data',  # Demographics data tables
+            r'Age.*Weight.*Sex.*Group',  # Demographics table headers
+            r'\d+\s+weeks.*\d+\s*g.*(?:Male|Female)',  # Age, weight, sex data
         ]
         
         actual_dm_found = any(re.search(pattern, content, re.IGNORECASE) 
-                             for pattern in actual_dm_indicators)
+                            for pattern in actual_dm_indicators)
         
         if not actual_dm_found:
-            confidence = max(0, confidence - 40)
-            evidence.append("Penalized: No actual demographic data found")
+            confidence = max(0, confidence - 55)
+            evidence.append("Penalized: No actual demographic data tables found")
+        
+        # Heavy penalty for protocol/methodology content
+        methodology_indicators = [
+            r'(?i)animals?\s+will\s+be\s+randomized',
+            r'(?i)males?\s+and\s+females?\s+were\s+chosen',
+            r'(?i)age\s+at\s+receipt',
+            r'(?i)weight\s+on\s+dosing',
+            r'(?i)nulliparous\s+and\s+nonpregnant',
+            r'(?i)approximate\s+age\s+and\s+weight',
+            r'(?i)randomization.*procedure',
+            r'(?i)test\s+system.*species',
+        ]
+        
+        methodology_count = sum(1 for pattern in methodology_indicators 
+                            if re.search(pattern, content, re.IGNORECASE))
+        
+        if methodology_count >= 2:
+            confidence = max(0, confidence - 65)
+            evidence.append("Penalized: Appears to be demographics methodology/protocol text")
         
         return confidence, evidence
 
     @staticmethod
     def validate_body_weight(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
         """
-        Validate BW (Body Weight) domain detection
-        
-        Args:
-            content: Page content to validate
-            initial_confidence: Initial confidence score
-            evidence: List of evidence strings
-            
-        Returns:
-            Tuple of (adjusted_confidence, updated_evidence)
+        Enhanced BW (Body Weight) domain validation
         """
         confidence = initial_confidence
         
-        # Check for actual body weight measurements and data
+        # Check for actual body weight DATA tables (not just mentions)
         actual_bw_indicators = [
-            r'\d+\.?\d*\s*(g|kg|grams?|kilograms?)',  # Weight measurements
-            r'Body\s*Weight.*\d+\.?\d*',  # Body weight with numbers
-            r'Weight.*:\s*\d+',  # Weight labels with values
-            r'Animal\s+\d+.*\d+\.?\d*\s*g',  # Individual animal weights
-            r'Group\s+\d+.*\d+\.?\d*\s*(g|kg)',  # Group weight data
-            r'Mean.*\d+\.?\d*\s*(g|kg)',  # Mean weight values
-            r'Table\s+\d+:.*Body\s*Weight',  # Body weight tables
-            r'\d+\.?\d*\s+\d+\.?\d*\s+\d+\.?\d*',  # Multiple weight measurements in rows
-            r'Day\s+\d+.*\d+\.?\d*\s*(g|kg)',  # Daily weight measurements
-            r'Baseline.*\d+\.?\d*\s*(g|kg)',  # Baseline weights
-            r'Terminal.*\d+\.?\d*\s*(g|kg)',  # Terminal weights
+            r'Table\s+\d+:.*Body\s*Weight.*Data',  # Specific BW table titles
+            r'Individual.*Body\s*Weight.*Data',  # Individual BW tables
+            r'Summary.*Body\s*Weight.*Data',  # Summary BW tables
+            r'Animal\s+\d+.*\d+\.?\d*\s+\d+\.?\d*\s+\d+\.?\d*',  # Multiple weight measurements per animal
+            r'Day.*Body\s*Weight.*Grams',  # Table headers with days and weights
+            r'\d{4}\s+\d{3,4}\.\d+\s+\d{3,4}\.\d+',  # Animal ID with multiple weights
+            r'Mean.*\d+\.?\d*.*SD.*\d+\.?\d*.*N\s+\d+',  # Statistical summaries of weights
         ]
         
         actual_bw_found = any(re.search(pattern, content, re.IGNORECASE) 
                             for pattern in actual_bw_indicators)
         
-        # Heavy penalty if no actual weight measurements found
         if not actual_bw_found:
-            confidence = max(0, confidence - 55)
-            evidence.append("Penalized: No actual body weight measurements found")
+            confidence = max(0, confidence - 60)
+            evidence.append("Penalized: No actual body weight data tables found")
         
-        # Check for weight data tables (strong positive indicator)
-        weight_table_indicators = [
-            r'Individual.*Body\s*Weight',
-            r'Summary.*Body\s*Weight',
-            r'Body\s*Weight.*Data',
-            r'Weight.*\(Grams?\)',
-            r'Animal.*Weight.*Day',
-            r'Subject.*Weight',
+        # Heavy penalty for protocol weight specifications
+        protocol_weight_indicators = [
+            r'(?i)at\s+least\s+\d+\s*g.*(?:males?|females?)',  # "at least 240 g (males)"
+            r'(?i)weight\s+on\s+dosing.*at\s+least',
+            r'(?i)approximate.*weight.*receipt',
+            r'(?i)body\s*weights?\s*will\s*be\s*recorded',
+            r'(?i)minimum.*body\s*weight',
+            r'(?i)test\s+system.*weight',
         ]
         
-        table_found = any(re.search(pattern, content, re.IGNORECASE) 
-                        for pattern in weight_table_indicators)
-        
-        if table_found:
-            confidence += 20
-            evidence.append("Bonus: Body weight data table detected")
-        
-        # Check for weight change calculations (strong indicator)
-        weight_change_indicators = [
-            r'weight\s*(gain|loss|change)',
-            r'percent\s*change.*weight',
-            r'baseline.*change',
-            r'\d+\.?\d*%.*weight',
-            r'(increase|decrease).*weight',
-        ]
-        
-        change_found = any(re.search(pattern, content, re.IGNORECASE) 
-                        for pattern in weight_change_indicators)
-        
-        if change_found:
-            confidence += 15
-            evidence.append("Bonus: Weight change calculations detected")
-        
-        # Protocol/methodology penalty
-        methodology_indicators = [
-            r'(?i)body\s*weights?\s*will\s*be\s*(recorded|measured)',
-            r'(?i)animals?\s*will\s*be\s*weighed',
-            r'(?i)weighing\s*procedures?',
-            r'(?i)at\s*minimum.*weight',
-            r'(?i)protocol.*weight',
-            r'(?i)methodology.*weight',
-            r'(?i)procedure.*weight.*recorded',
-            r'(?i)weight.*procedure',
-        ]
-        
-        methodology_count = sum(1 for pattern in methodology_indicators 
+        protocol_count = sum(1 for pattern in protocol_weight_indicators 
                             if re.search(pattern, content, re.IGNORECASE))
         
-        if methodology_count >= 1:
-            confidence = max(0, confidence - 50)
-            evidence.append("Penalized: Appears to be body weight methodology/protocol text")
+        if protocol_count >= 1:
+            confidence = max(0, confidence - 70)
+            evidence.append("Penalized: Contains protocol body weight specifications, not data")
         
-        # Administrative/summary penalty
-        admin_indicators = [
-            r'(?i)table\s+of\s+contents',
-            r'(?i)summary.*weight',
-            r'(?i)conclusion.*weight',
-            r'(?i)objective.*weight',
-            r'(?i)study\s*design.*weight',
+        # Penalty for isolated weight mentions without data context
+        isolated_weight_pattern = r'\b\d+\.?\d*\s*g\b'
+        data_context_patterns = [
+            r'Day\s+\d+',
+            r'Animal\s+\d+',
+            r'Table\s+\d+',
+            r'Mean.*SD',
+            r'Group\s+\d+'
         ]
         
-        admin_count = sum(1 for pattern in admin_indicators 
-                        if re.search(pattern, content, re.IGNORECASE))
+        has_weights = bool(re.search(isolated_weight_pattern, content))
+        has_data_context = any(re.search(pattern, content, re.IGNORECASE) 
+                            for pattern in data_context_patterns)
         
-        if admin_count >= 1:
-            confidence = max(0, confidence - 35)
-            evidence.append("Penalized: Appears to be administrative/summary text about weight")
-        
-        # Check for multiple weight measurements (very strong indicator)
-        weight_numbers = re.findall(r'\d+\.?\d*\s*(g|kg|grams?)', content, re.IGNORECASE)
-        if len(weight_numbers) >= 5:
-            confidence += 25
-            evidence.append(f"Bonus: Multiple weight measurements found ({len(weight_numbers)})")
-        elif len(weight_numbers) >= 3:
-            confidence += 15
-            evidence.append(f"Bonus: Several weight measurements found ({len(weight_numbers)})")
-        
-        # Check for statistical measures (mean, SD, etc.) with weights
-        stats_with_weight = [
-            r'Mean.*\d+\.?\d*\s*(g|kg)',
-            r'SD.*\d+\.?\d*\s*(g|kg)', 
-            r'Standard\s*Deviation.*\d+\.?\d*\s*(g|kg)',
-            r'N\s*=?\s*\d+.*\d+\.?\d*\s*(g|kg)',
-        ]
-        
-        stats_found = any(re.search(pattern, content, re.IGNORECASE) 
-                        for pattern in stats_with_weight)
-        
-        if stats_found:
-            confidence += 20
-            evidence.append("Bonus: Statistical measures with weight data found")
-        
-        # Penalty for just mentioning weight without data
-        if re.search(r'(?i)body\s*weight', content) and not actual_bw_found:
-            confidence = max(0, confidence - 30)
-            evidence.append("Penalized: Body weight mentioned but no actual data found")
+        if has_weights and not has_data_context:
+            confidence = max(0, confidence - 40)
+            evidence.append("Penalized: Weight mentions without data table context")
         
         return confidence, evidence
     
     @staticmethod
     def validate_exposure(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
         """
-        Validate EX (Exposure) domain detection - Enhanced version
-        
-        Args:
-            content: Page content to validate
-            initial_confidence: Initial confidence score
-            evidence: List of evidence strings
-            
-        Returns:
-            Tuple of (adjusted_confidence, updated_evidence)
+        Enhanced EX (Exposure) domain validation
         """
         confidence = initial_confidence
         
-        # Check for actual exposure/dosing data
+        # Check for actual DOSING/ADMINISTRATION data (not just dose mentions)
         actual_ex_indicators = [
-            r'\d+\.?\d*\s*(mg/kg|mg|μg|ng|g/kg)',  # Dose amounts
-            r'Dose\s*Level.*\d+',  # Dose levels
-            r'Route:?\s*(IV|PO|SC|IM|Intravenous|Oral)',  # Administration routes
-            r'Duration:?\s*\d+',  # Duration data
-            r'Concentration:?\s*\d+',  # Concentration data
-            r'Group\s+\d+.*\d+\s*mg/kg',  # Group dose assignments
-            r'Table.*Dose|Dosing.*Table',  # Dosing tables
-            r'Administration.*\d+\s*mg',  # Administration with doses
-            r'Treatment.*\d+\s*(mg|μg)',  # Treatment doses
-            r'Vehicle.*Control',  # Vehicle/control groups
-            r'Dose\s*Volume.*\d+',  # Dose volumes
-            r'Once.*daily.*\d+\s*mg',  # Dosing frequency
-            r'Single.*dose.*\d+',  # Single dose administration
+            r'Table\s+\d+:.*(?:Dose|Dosing|Administration)',  # Actual dosing tables
+            r'Individual.*(?:Dose|Dosing).*Data',  # Individual dosing data
+            r'Dose\s+Formulation.*Analysis',  # Dose formulation tables
+            r'Administration.*\d{2}/\d{2}/\d{2}.*\d{1,2}:\d{2}',  # Actual administration records with dates/times
+            r'Animal\s+\d+.*administered.*\d+\.?\d*\s*mg/kg',  # Individual animal dosing records
+            r'Formulation.*Concentration.*Volume',  # Dosing formulation details
+            r'Route.*Frequency.*Duration',  # Administration details
+            r'Test\s+Article.*Vehicle.*Prepared',  # Actual preparation records
         ]
         
         actual_ex_found = any(re.search(pattern, content, re.IGNORECASE) 
                             for pattern in actual_ex_indicators)
         
-        # Heavy penalty if no actual exposure data found
         if not actual_ex_found:
-            confidence = max(0, confidence - 50)
-            evidence.append("Penalized: No actual exposure/dosing data found")
+            confidence = max(0, confidence - 65)
+            evidence.append("Penalized: No actual dosing/administration data found")
         
-        # Check for dose administration tables (strong positive indicator)
-        dose_table_indicators = [
-            r'Dose.*Administration',
-            r'Treatment.*Groups?',
-            r'Dosing.*Schedule',
-            r'Exposure.*Data',
-            r'Administration.*Table',
-            r'Dose.*Formulation.*Table',
-            r'Group.*Assignment.*Dose',
+        # Heavy penalty for experimental design dose specifications (not actual dosing data)
+        design_dose_indicators = [
+            r'(?i)experimental\s+design.*\d+\s*mg/kg',  # Design tables with doses
+            r'(?i)group\s+\d+.*treatment.*\d+\s*mg/kg.*number\s+of\s+animals',  # Design group tables
+            r'(?i)dose\s+level.*dose\s+concentration.*number\s+of\s+animals',  # Protocol design tables
+            r'(?i)justification\s+of\s+dose',
+            r'(?i)route\s+of\s+administration\s+will\s+be',
+            r'(?i)dose\s+selection.*will\s+be\s+based',
         ]
         
-        table_found = any(re.search(pattern, content, re.IGNORECASE) 
-                        for pattern in dose_table_indicators)
-        
-        if table_found:
-            confidence += 25
-            evidence.append("Bonus: Dose administration table detected")
-        
-        # Check for multiple dose levels (strong indicator)
-        dose_levels = re.findall(r'\d+\.?\d*\s*mg/kg', content, re.IGNORECASE)
-        if len(dose_levels) >= 5:
-            confidence += 30
-            evidence.append(f"Bonus: Multiple dose levels found ({len(dose_levels)})")
-        elif len(dose_levels) >= 3:
-            confidence += 20
-            evidence.append(f"Bonus: Several dose levels found ({len(dose_levels)})")
-        elif len(dose_levels) >= 2:
-            confidence += 10
-            evidence.append(f"Bonus: Dose levels found ({len(dose_levels)})")
-        
-        # Check for administration routes (positive indicator)
-        route_indicators = [
-            r'intravenous.*injection',
-            r'oral.*gavage',
-            r'subcutaneous.*injection',
-            r'intramuscular.*injection',
-            r'IV.*bolus',
-            r'PO.*administration',
-            r'route.*administration',
-        ]
-        
-        route_found = any(re.search(pattern, content, re.IGNORECASE) 
-                        for pattern in route_indicators)
-        
-        if route_found:
-            confidence += 15
-            evidence.append("Bonus: Administration route information detected")
-        
-        # Check for dose formulation data (positive indicator)
-        formulation_indicators = [
-            r'dose.*formulation',
-            r'test.*article.*preparation',
-            r'vehicle.*preparation',
-            r'concentration.*mg/mL',
-            r'dose.*volume.*mL/kg',
-            r'formulation.*analysis',
-        ]
-        
-        formulation_found = any(re.search(pattern, content, re.IGNORECASE) 
-                            for pattern in formulation_indicators)
-        
-        if formulation_found:
-            confidence += 15
-            evidence.append("Bonus: Dose formulation information detected")
-        
-        # Protocol/methodology penalty
-        methodology_indicators = [
-            r'(?i)dose.*will.*be.*administered',
-            r'(?i)animals?.*will.*receive',
-            r'(?i)treatment.*will.*be.*given',
-            r'(?i)dosing.*procedure',
-            r'(?i)administration.*method',
-            r'(?i)protocol.*dose',
-            r'(?i)study.*design.*dose',
-            r'(?i)methodology.*dosing',
-        ]
-        
-        methodology_count = sum(1 for pattern in methodology_indicators 
-                            if re.search(pattern, content, re.IGNORECASE))
-        
-        if methodology_count >= 1:
-            confidence = max(0, confidence - 45)
-            evidence.append("Penalized: Appears to be dosing methodology/protocol text")
-        
-        # Administrative/summary penalty
-        admin_indicators = [
-            r'(?i)table\s+of\s+contents',
-            r'(?i)objective.*dose',
-            r'(?i)study\s*design.*exposure',
-            r'(?i)protocol.*summary',
-            r'(?i)conclusion.*dose',
-        ]
-        
-        admin_count = sum(1 for pattern in admin_indicators 
+        design_count = sum(1 for pattern in design_dose_indicators 
                         if re.search(pattern, content, re.IGNORECASE))
         
-        if admin_count >= 1:
-            confidence = max(0, confidence - 30)
-            evidence.append("Penalized: Appears to be administrative text about dosing")
+        if design_count >= 1:
+            confidence = max(0, confidence - 75)
+            evidence.append("Penalized: Contains experimental design dose specifications, not actual dosing data")
         
-        # Check for dose-response relationships (strong indicator)
-        dose_response_indicators = [
-            r'dose.*response',
-            r'dose.*dependent',
-            r'increasing.*dose',
-            r'dose.*escalation',
-            r'low.*dose.*high.*dose',
+        # Penalty for dose mentions in other domain contexts
+        other_domain_indicators = [
+            r'(?i)body\s*weight.*\d+\.?\d*\s*g',  # Body weight context
+            r'(?i)food\s*consumption.*\d+',  # Food consumption context  
+            r'(?i)macroscopic.*examination',  # Macroscopic context
+            r'(?i)clinical\s*observations.*\d+\s*mg/kg',  # Clinical observations mentioning dose
         ]
         
-        dose_response_found = any(re.search(pattern, content, re.IGNORECASE) 
-                                for pattern in dose_response_indicators)
+        other_domain_count = sum(1 for pattern in other_domain_indicators 
+                                if re.search(pattern, content, re.IGNORECASE))
         
-        if dose_response_found:
-            confidence += 20
-            evidence.append("Bonus: Dose-response relationship detected")
-        
-        # Check for control groups (positive indicator)
-        control_indicators = [
-            r'vehicle.*control',
-            r'negative.*control',
-            r'control.*group',
-            r'placebo.*group',
-            r'untreated.*group',
-        ]
-        
-        control_found = any(re.search(pattern, content, re.IGNORECASE) 
-                        for pattern in control_indicators)
-        
-        if control_found:
-            confidence += 10
-            evidence.append("Bonus: Control group information detected")
-        
-        # Penalty for just mentioning dose without actual data
-        if re.search(r'(?i)dose|dosing', content) and not actual_ex_found:
-            confidence = max(0, confidence - 25)
-            evidence.append("Penalized: Dosing mentioned but no actual dose data found")
+        if other_domain_count >= 1:
+            confidence = max(0, confidence - 50)
+            evidence.append("Penalized: Dose mentions in non-exposure domain context")
         
         return confidence, evidence
     
@@ -755,117 +585,177 @@ class DomainValidator:
     
     @staticmethod
     def validate_trial_summary(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
+        """
+        Enhanced TS (Trial Summary) domain validation
+        """
         confidence = initial_confidence
         
-        # Check for actual trial summary content
+        # Check for actual summary content vs protocol
         actual_ts_indicators = [
-            r'Study\s+No\.?\s*\d+',  # Study numbers
-            r'Objective.*evaluate',  # Study objectives
-            r'Conclusion.*findings?',  # Conclusions
-            r'MTD.*\d+\s*mg/kg',  # MTD results
-            r'NOAEL.*\d+\s*mg/kg',  # NOAEL findings
-            r'Summary.*results?',  # Summary sections
-            r'Key.*findings?',  # Key findings
-            r'Study.*Director.*\w+',  # Personnel info
-            r'Sponsor.*\w+',  # Sponsor info
-            r'Test.*Facility.*\w+',  # Facility info
+            r'(?i)(?:conclusion|summary).*(?:mtd|noael|findings?).*\d+\s*mg/kg',
+            r'(?i)maximum\s+tolerated\s+dose.*(?:was|considered).*\d+\s*mg/kg',
+            r'(?i)based\s+on\s+these\s+findings',
+            r'(?i)test\s+article.*related.*(?:mortality|effects?)',
+            r'(?i)no\s+test\s+article.*related\s+effects?',
+            r'(?i)study.*(?:completed|conducted).*evaluate',
+            r'(?i)results?.*showed?.*\d+\s*mg/kg',
         ]
         
-        if not any(re.search(pattern, content, re.IGNORECASE) for pattern in actual_ts_indicators):
-            confidence = max(0, confidence - 50)
-            evidence.append("Penalized: No actual trial summary content found")
+        actual_ts_found = any(re.search(pattern, content, re.IGNORECASE) 
+                            for pattern in actual_ts_indicators)
         
-        # Bonus for summary tables
-        if re.search(r'Table.*Summary', content, re.IGNORECASE):
-            confidence += 20
-            evidence.append("Bonus: Summary table detected")
+        if not actual_ts_found:
+            confidence = max(0, confidence - 50)
+            evidence.append("Penalized: No actual trial summary conclusions found")
+        
+        # Penalty for protocol/objective sections
+        protocol_indicators = [
+            r'(?i)objective.*this\s+study.*(?:were?|are)\s+to',
+            r'(?i)proposed\s+study\s+schedule',
+            r'(?i)experimental\s+design',
+            r'(?i)protocol.*modification',
+            r'(?i)draft\s+report.*\d{2}\s+\w{3}\s+\d{4}',  # Draft report dates
+            r'(?i)test\s+facility.*attentive',
+            r'(?i)sponsor.*pharmaceuticals?',
+        ]
+        
+        protocol_count = sum(1 for pattern in protocol_indicators 
+                            if re.search(pattern, content, re.IGNORECASE))
+        
+        if protocol_count >= 2:
+            confidence = max(0, confidence - 60)
+            evidence.append("Penalized: Appears to be protocol/objective text rather than summary")
         
         return confidence, evidence
     
     @staticmethod
     def validate_disposition(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
+        """
+        Enhanced DS (Disposition) domain validation
+        """
         confidence = initial_confidence
         
-        # Check for actual disposition data
+        # Check for actual disposition/mortality data
         actual_ds_indicators = [
-            r'Killed\s+Terminal',  # Terminal kills
-            r'Found\s+Dead',  # Deaths
-            r'Completed.*\d+',  # Completion numbers
-            r'Removal\s+Reason',  # Removal reasons
-            r'Animal\s+\d+.*Terminal',  # Individual dispositions
-            r'Euthanized.*Day\s+\d+',  # Euthanasia timing
-            r'Study\s+completion',  # Study completion
-            r'Early\s+termination',  # Early terminations
-            r'Moribund',  # Moribund animals
-            r'Schedule.*necropsy',  # Scheduled procedures
+            r'(?:Killed|Found)\s+(?:Terminal|Dead)',  # Specific disposition reasons
+            r'Animal\s+\d+.*(?:Terminal|Dead|Euthanized)',  # Individual animal dispositions
+            r'Group\s+\d+.*Day\s+\d+.*(?:Terminal|Dead)',  # Group disposition timing
+            r'Removal\s+Reason.*(?:Term|FD)',  # Removal reason codes
+            r'Table.*(?:Mortality|Disposition).*Data',  # Disposition tables
+            r'\d{2}/\d{2}/\d{2}.*(?:\d{1,2}:\d{2}).*(?:Term|FD)',  # Dates with disposition codes
+            r'Death.*Mode.*Day.*Week',  # Individual mortality table headers
         ]
         
-        if not any(re.search(pattern, content, re.IGNORECASE) for pattern in actual_ds_indicators):
-            confidence = max(0, confidence - 50)
-            evidence.append("Penalized: No actual disposition data found")
+        actual_ds_found = any(re.search(pattern, content, re.IGNORECASE) 
+                            for pattern in actual_ds_indicators)
         
-        # Check for disposition tables
-        if re.search(r'Table.*Mortality|Individual.*Mortality', content, re.IGNORECASE):
-            confidence += 25
-            evidence.append("Bonus: Disposition/mortality table detected")
+        if not actual_ds_found:
+            confidence = max(0, confidence - 55)
+            evidence.append("Penalized: No actual disposition/mortality data found")
+        
+        # Check for disposition methodology (penalty)
+        methodology_indicators = [
+            r'(?i)animals?\s+(?:will\s+be|to\s+be)\s+euthanized',
+            r'(?i)moribund\s+animals?\s+will\s+be',
+            r'(?i)method\s+of\s+euthanasia',
+            r'(?i)terminal\s+procedures?',
+            r'(?i)animals?\s+found\s+dead\s+will\s+be',
+            r'(?i)co2?\s+inhalation.*exsanguination',
+        ]
+        
+        methodology_count = sum(1 for pattern in methodology_indicators 
+                            if re.search(pattern, content, re.IGNORECASE))
+        
+        if methodology_count >= 1:
+            confidence = max(0, confidence - 50)
+            evidence.append("Penalized: Appears to be disposition methodology/protocol text")
         
         return confidence, evidence
     
     @staticmethod
     def validate_food_water(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
+        """
+        Enhanced FW (Food and Water Consumption) domain validation
+        """
         confidence = initial_confidence
         
-        # Check for actual consumption data
+        # Check for actual consumption DATA tables
         actual_fw_indicators = [
-            r'\d+\.?\d*\s*g.*food',  # Food consumption amounts
-            r'Food.*Consumption.*\d+',  # Food consumption data
-            r'Water.*intake.*\d+',  # Water intake data
-            r'Daily.*Food.*\d+',  # Daily consumption
-            r'Mean.*consumption.*\d+',  # Mean consumption
-            r'Animal\s+\d+.*\d+\.?\d*\s*g',  # Individual consumption
-            r'Cage.*\d+.*\d+\.?\d*\s*g',  # Cage-based data
-            r'Feed.*efficiency',  # Feed efficiency
-            r'Table.*Food.*Consumption',  # Food consumption tables
+            r'Table\s+\d+:.*Food\s*Consumption.*Data',  # Specific FW table titles
+            r'Individual.*Food\s*Consumption.*Data',  # Individual consumption tables
+            r'Summary.*Food\s*Consumption.*Data',  # Summary consumption tables
+            r'Daily\s*Food\s*Cons.*Per\s*Animal.*\(g\)',  # Actual consumption measurements
+            r'Animal.*\d+→\d+.*\d+→\d+',  # Daily consumption intervals
+            r'Cage.*Mean.*\d+.*SD.*\d+',  # Consumption statistics
+            r'\d+\.\d+\s+\d+\.\d+\s+\d+\.\d+.*g',  # Multiple consumption values
         ]
         
-        if not any(re.search(pattern, content, re.IGNORECASE) for pattern in actual_fw_indicators):
-            confidence = max(0, confidence - 50)
-            evidence.append("Penalized: No actual food/water consumption data found")
+        actual_fw_found = any(re.search(pattern, content, re.IGNORECASE) 
+                            for pattern in actual_fw_indicators)
         
-        # Multiple consumption measurements
-        consumption_numbers = re.findall(r'\d+\.?\d*\s*g', content, re.IGNORECASE)
-        if len(consumption_numbers) >= 5:
-            confidence += 20
-            evidence.append(f"Bonus: Multiple consumption measurements ({len(consumption_numbers)})")
+        if not actual_fw_found:
+            confidence = max(0, confidence - 60)
+            evidence.append("Penalized: No actual food consumption data tables found")
+        
+        # Penalty for protocol food specifications
+        protocol_food_indicators = [
+            r'(?i)certified\s+laboratory\s+diet',
+            r'(?i)food\s*will\s*be\s*weighed\s*and\s*recorded',
+            r'(?i)diet.*offered\s+ad\s+libitum',
+            r'(?i)water.*available\s+ad\s+libitum',
+            r'(?i)food\s*consumption.*will\s*be\s*collected',
+            r'(?i)diet.*analyzed\s*for\s*contaminants',
+        ]
+        
+        protocol_count = sum(1 for pattern in protocol_food_indicators 
+                            if re.search(pattern, content, re.IGNORECASE))
+        
+        if protocol_count >= 1:
+            confidence = max(0, confidence - 55)
+            evidence.append("Penalized: Contains protocol food specifications, not actual data")
         
         return confidence, evidence
     
     @staticmethod
     def validate_trial_arms(content: str, initial_confidence: float, evidence: List[str]) -> Tuple[float, List[str]]:
+        """
+        Enhanced TA (Trial Arms) domain validation
+        """
         confidence = initial_confidence
         
-        # Check for actual trial arm/group data
+        # Check for actual treatment group assignment data
         actual_ta_indicators = [
-            r'Group\s+\d+.*\d+\s*mg/kg',  # Group assignments with doses
-            r'Treatment.*Group.*\d+',  # Treatment groups
-            r'Arm\s+\d+',  # Study arms
-            r'Cohort\s+\d+',  # Cohorts
-            r'Dose\s+Level.*Group',  # Dose level groups
-            r'Control.*Group',  # Control groups
-            r'Vehicle.*Group',  # Vehicle groups
-            r'N\s*=\s*\d+.*male.*female',  # Group sizes
-            r'Experimental.*Design.*Group',  # Design with groups
+            r'Group\s+\d+.*\d+\s*mg/kg.*\d+\s*(?:Males?|Females?)',  # Complete group assignments
+            r'Treatment.*Group.*Dose.*Animals?',  # Treatment group tables
+            r'Randomization.*Group.*Assignment',  # Randomization tables
+            r'Animal\s+\d+.*Group\s+\d+.*\d+\s*mg/kg',  # Individual assignments
+            r'Table.*Group.*Assignment',  # Group assignment tables
+            r'Dose\s+Level.*Number\s+of\s+Animals?',  # Dose level tables
         ]
         
-        if not any(re.search(pattern, content, re.IGNORECASE) for pattern in actual_ta_indicators):
-            confidence = max(0, confidence - 45)
-            evidence.append("Penalized: No actual trial arm/group data found")
+        actual_ta_found = any(re.search(pattern, content, re.IGNORECASE) 
+                            for pattern in actual_ta_indicators)
         
-        # Count number of groups mentioned
-        group_count = len(re.findall(r'Group\s+\d+', content, re.IGNORECASE))
-        if group_count >= 3:
-            confidence += 20
-            evidence.append(f"Bonus: Multiple trial groups detected ({group_count})")
+        if not actual_ta_found:
+            confidence = max(0, confidence - 50)
+            evidence.append("Penalized: No actual trial arm assignment data found")
+        
+        # Check for experimental design methodology (penalty)
+        methodology_indicators = [
+            r'(?i)experimental\s+design',
+            r'(?i)justification\s+of\s+dose',
+            r'(?i)males?\s+and\s+females?\s+were\s+chosen',
+            r'(?i)total\s+number\s+of\s+animals?.*minimum\s+required',
+            r'(?i)study.*designed.*accomplish.*objectives?',
+            r'(?i)route\s+of\s+administration.*intravenous',
+        ]
+        
+        methodology_count = sum(1 for pattern in methodology_indicators 
+                            if re.search(pattern, content, re.IGNORECASE))
+        
+        if methodology_count >= 2:
+            confidence = max(0, confidence - 55)
+            evidence.append("Penalized: Appears to be experimental design methodology")
         
         return confidence, evidence
     
@@ -1118,6 +1008,8 @@ def validate_domain_content(domain_code: str, content: str, initial_confidence: 
         return validator.validate_vital_signs(content, initial_confidence, evidence)
     elif domain_code == 'CL':
         return validator.validate_clinical_observations(content, initial_confidence, evidence)
+    elif domain_code == 'FW':
+        return validator.validate_food_water(content, initial_confidence, evidence)
     elif domain_code == 'DM':
         return validator.validate_demographics(content, initial_confidence, evidence)
     elif domain_code == 'EX':
@@ -1130,8 +1022,6 @@ def validate_domain_content(domain_code: str, content: str, initial_confidence: 
         return validator.validate_trial_summary(content, initial_confidence, evidence)
     elif domain_code == 'DS':
         return validator.validate_disposition(content, initial_confidence, evidence)
-    elif domain_code == 'FW':
-        return validator.validate_food_water(content, initial_confidence, evidence)
     elif domain_code == 'TA':
         return validator.validate_trial_arms(content, initial_confidence, evidence)
     elif domain_code == 'CO':

@@ -1,4 +1,6 @@
-# send_validators/data_processor.py
+# builder/utils/extractions/send_validator.py - FIXED VERSION
+# Changes are marked with # FIXED comments
+
 import logging
 import pandas as pd
 import numpy as np
@@ -10,14 +12,14 @@ from builder.utils.send_utils import get_required_columns,get_column_description
 
 logger = logging.getLogger(__name__)
 
-def post_process_domain_data(df: pd.DataFrame, domain: str, Study: object=Optional) -> pd.DataFrame:
+def post_process_domain_data(df: pd.DataFrame, domain: str, study: object = None) -> pd.DataFrame:
     """
     Post-process extracted domain data to ensure SEND compliance
     
     Args:
         df (pd.DataFrame): Raw extracted data
         domain (str): SEND domain code (e.g., 'DM', 'CL', 'BW')
-        Study (object): Study object (optional)
+        study (object): Study object (optional)
         
     Returns:
         pd.DataFrame: Post-processed, SEND-compliant data
@@ -36,7 +38,7 @@ def post_process_domain_data(df: pd.DataFrame, domain: str, Study: object=Option
         processed_df = _standardize_column_names(processed_df, domain)
         
         # 2. Ensure required columns exist
-        processed_df = _ensure_required_columns(processed_df, domain)
+        processed_df = _ensure_required_columns(processed_df, domain, study)
         
         # 3. Normalize data types
         processed_df = _normalize_data_types(processed_df, domain)
@@ -53,8 +55,8 @@ def post_process_domain_data(df: pd.DataFrame, domain: str, Study: object=Option
         # 7. Apply controlled terminology
         processed_df = _apply_controlled_terminology(processed_df, domain)
         
-        # 8. Validate and fix cross-references
-        processed_df = _validate_cross_references(processed_df, domain)
+        # 8. FIXED: Validate and fix cross-references with study context
+        processed_df = _validate_cross_references(processed_df, domain, study)
         
         # 9. Final data validation and cleanup
         processed_df = _final_cleanup(processed_df, domain)
@@ -69,6 +71,189 @@ def post_process_domain_data(df: pd.DataFrame, domain: str, Study: object=Option
         logger.error(f"Error post-processing {domain} domain: {e}", exc_info=True)
         return df  # Return original data if processing fails
 
+def _get_default_value(column: str, domain: str, df: pd.DataFrame, study=None) -> Any:
+    """Get appropriate default value for missing column"""
+    
+    # FIXED: Use study object as primary source for STUDYID
+    if column == 'STUDYID':
+        if study and hasattr(study, 'study_number'):
+            return study.study_number
+        elif study and hasattr(study, 'get_standardized_study_id'):
+            return study.get_standardized_study_id()
+        elif 'USUBJID' in df.columns:
+            # FIXED: Better logic to extract STUDYID from USUBJID
+            sample_usubjid = df['USUBJID'].dropna().iloc[0] if not df['USUBJID'].dropna().empty else ''
+            if sample_usubjid:
+                # Use regex to extract proper STUDYID format (XXXX-XXXX)
+                match = re.search(r'\b(\d{4}-\d{4})\b', str(sample_usubjid))
+                if match:
+                    return match.group(1)
+            return 'UNKNOWN'
+        else:
+            return 'UNKNOWN'
+    
+    # Use study information for RFSTDTC (Reference Start Date/Time)
+    if column == 'RFSTDTC' and study and hasattr(study, 'start_date'):
+        if study.start_date:
+            return study.start_date.strftime('%Y-%m-%d')
+        return ''
+    
+    # Use study information for SPECIES
+    if column == 'SPECIES' and study and hasattr(study, 'species'):
+        if study.species:
+            return study.species.upper()
+        return 'RAT'
+    
+    # Domain-specific defaults
+    defaults = {
+        'STUDYID': study.study_number if study and hasattr(study, 'study_number') else 'UNKNOWN',
+        'DOMAIN': domain,
+        'USUBJID': '',
+        'SUBJID': '',
+        'RFSTDTC': study.start_date.strftime('%Y-%m-%d') if study and hasattr(study, 'start_date') and study.start_date else '',
+        'SPECIES': study.species.upper() if study and hasattr(study, 'species') and study.species else 'RAT',
+        'SEX': '',
+        'STRAIN': '',
+        'ARM': '',
+        'ARMCD': '',
+        f'{domain}SEQ': 1,
+        f'{domain}TESTCD': f'{domain}',
+        f'{domain}TEST': f'{domain} Test',
+        f'{domain}ORRES': '',
+        f'{domain}ORRESU': '',
+        f'{domain}STRESC': '',
+        f'{domain}DTC': '',
+        f'{domain}DY': '',
+        'VISITDY': '',
+        'EXTRT': 'Test Article',
+        'EXROUTE': 'ORAL',
+        'LBSPEC': 'SERUM',
+        'LBBLFL': 'N',
+        'MASTRESC': 'NORMAL',
+        'MISTRESC': 'NORMAL'
+    }
+    
+    return defaults.get(column, '')
+
+def _validate_cross_references(df: pd.DataFrame, domain: str, study=None) -> pd.DataFrame:
+    """FIXED: Validate and fix cross-references between variables with study context"""
+    
+    # Ensure DOMAIN matches the domain parameter
+    if 'DOMAIN' in df.columns:
+        df['DOMAIN'] = domain
+    
+    # FIXED: Use study object as authoritative source for STUDYID
+    if study and hasattr(study, 'study_number'):
+        authoritative_studyid = study.study_number
+        logger.info(f"Using authoritative STUDYID from study: {authoritative_studyid}")
+        
+        # Set STUDYID consistently across all records
+        if 'STUDYID' in df.columns:
+            df['STUDYID'] = authoritative_studyid
+        
+        # FIXED: Fix USUBJID format using study methods if available
+        if 'USUBJID' in df.columns:
+            for idx, row in df.iterrows():
+                usubjid = str(row['USUBJID']).strip()
+                
+                if usubjid and usubjid not in ['nan', 'None', '']:
+                    try:
+                        # Use study's validation method if available
+                        if hasattr(study, 'validate_usubjid'):
+                            corrected_usubjid = study.validate_usubjid(usubjid)
+                            df.at[idx, 'USUBJID'] = corrected_usubjid
+                        elif hasattr(study, 'generate_usubjid'):
+                            # Extract subject ID and regenerate
+                            subject_id = _extract_subject_id_from_usubjid(usubjid, authoritative_studyid)
+                            if subject_id:
+                                corrected_usubjid = study.generate_usubjid(subject_id)
+                                df.at[idx, 'USUBJID'] = corrected_usubjid
+                        else:
+                            # Fallback method
+                            corrected_usubjid = _fix_usubjid_format(usubjid, authoritative_studyid)
+                            df.at[idx, 'USUBJID'] = corrected_usubjid
+                            
+                        logger.debug(f"Fixed USUBJID: {usubjid} -> {df.at[idx, 'USUBJID']}")
+                        
+                    except Exception as e:
+                        logger.warning(f"Could not fix USUBJID {usubjid}: {e}")
+                        # Set a default if all else fails
+                        df.at[idx, 'USUBJID'] = f"{authoritative_studyid}-{str(idx+1).zfill(3)}"
+    
+    # Generate SUBJID from USUBJID if missing
+    if 'SUBJID' not in df.columns and 'USUBJID' in df.columns:
+        df['SUBJID'] = df['USUBJID'].apply(lambda x: _extract_subject_id_from_usubjid(str(x)))
+    
+    return df
+
+def _extract_subject_id_from_usubjid(usubjid: str, expected_studyid: str = None) -> str:
+    """
+    FIXED: Extract subject ID from USUBJID with better logic
+    
+    Args:
+        usubjid (str): The USUBJID to parse
+        expected_studyid (str): Expected STUDYID format for validation
+        
+    Returns:
+        str: Extracted subject ID
+    """
+    if not usubjid or str(usubjid).strip() in ['nan', 'None', '']:
+        return ''
+    
+    usubjid_str = str(usubjid).strip()
+    
+    # If we have expected STUDYID, use it to extract subject ID
+    if expected_studyid:
+        expected_prefix = f"{expected_studyid}-"
+        if usubjid_str.startswith(expected_prefix):
+            return usubjid_str[len(expected_prefix):]
+    
+    # Split by dashes and find the subject part
+    parts = usubjid_str.split('-')
+    
+    if len(parts) >= 3:
+        # Format like 1124-8751-003 -> subject is 003
+        # Or 1124-8751-003-001 -> subject is 001 (last part)
+        return parts[-1]
+    elif len(parts) == 2:
+        # Format like 1124-8751-003 where the whole thing was treated as STUDYID-SUBJID
+        # Check if second part looks like a subject ID (numeric, short)
+        if re.match(r'^\d{1,4}$', parts[1]):
+            return parts[1]
+    
+    # Fallback: extract all digits and use last 3
+    digits = re.findall(r'\d+', usubjid_str)
+    if digits:
+        return digits[-1].zfill(3)
+    
+    return '001'  # Default fallback
+
+def _fix_usubjid_format(usubjid: str, studyid: str) -> str:
+    """
+    FIXED: Fix USUBJID format to be STUDYID-SUBJID
+    
+    Args:
+        usubjid (str): Original USUBJID
+        studyid (str): Correct STUDYID
+        
+    Returns:
+        str: Fixed USUBJID
+    """
+    if not usubjid or str(usubjid).strip() in ['nan', 'None', '']:
+        return f"{studyid}-001"
+    
+    usubjid_str = str(usubjid).strip()
+    
+    # Extract subject ID
+    subject_id = _extract_subject_id_from_usubjid(usubjid_str, studyid)
+    
+    # Ensure subject ID is properly formatted (at least 3 digits)
+    if subject_id.isdigit():
+        subject_id = subject_id.zfill(3)
+    
+    return f"{studyid}-{subject_id}"
+
+# Keep all other existing functions unchanged...
 def _standardize_column_names(df: pd.DataFrame, domain: str) -> pd.DataFrame:
     """Standardize column names to SEND conventions"""
     
@@ -131,78 +316,19 @@ def _standardize_column_names(df: pd.DataFrame, domain: str) -> pd.DataFrame:
     
     return df
 
-def _ensure_required_columns(df: pd.DataFrame, domain: str) -> pd.DataFrame:
+def _ensure_required_columns(df: pd.DataFrame, domain: str, study=None) -> pd.DataFrame:
     """Ensure all required SEND columns are present"""
-    
-    # Use the utility function to get required columns
     
     required_cols = get_required_columns(domain)
     
     # Add missing columns with appropriate defaults
     for col in required_cols:
         if col not in df.columns:
-            default_value = _get_default_value(col, domain, df)
+            default_value = _get_default_value(col, domain, df, study)
             df[col] = default_value
             logger.info(f"Added missing column {col} with default value")
     
     return df
-
-def _get_default_value(column: str, domain: str, df: pd.DataFrame, study=None) -> Any:
-    """Get appropriate default value for missing column"""
-    
-    # Extract study ID from USUBJID if available
-    if column == 'STUDYID' and 'USUBJID' in df.columns:
-        # Extract study ID from USUBJID pattern (STUDYID-SUBJID)
-        sample_usubjid = df['USUBJID'].dropna().iloc[0] if not df['USUBJID'].dropna().empty else ''
-        if '-' in str(sample_usubjid):
-            return str(sample_usubjid).split('-')[0]
-        # If study object is available, use study_number
-        if study and hasattr(study, 'study_number'):
-            return study.study_number
-        return 'UNKNOWN'
-    
-    # Use study information for RFSTDTC (Reference Start Date/Time)
-    if column == 'RFSTDTC' and study and hasattr(study, 'start_date'):
-        if study.start_date:
-            return study.start_date.strftime('%Y-%m-%d')
-        return ''
-    
-    # Use study information for SPECIES
-    if column == 'SPECIES' and study and hasattr(study, 'species'):
-        if study.species:
-            return study.species.upper()
-        return 'RAT'
-    
-    # Domain-specific defaults
-    defaults = {
-        'STUDYID': study.study_number if study and hasattr(study, 'study_number') else 'UNKNOWN',
-        'DOMAIN': domain,
-        'USUBJID': '',
-        'SUBJID': '',
-        'RFSTDTC': study.start_date.strftime('%Y-%m-%d') if study and hasattr(study, 'start_date') and study.start_date else '',
-        'SPECIES': study.species.upper() if study and hasattr(study, 'species') and study.species else 'RAT',
-        'SEX': '',
-        'STRAIN': '',
-        'ARM': '',
-        'ARMCD': '',
-        f'{domain}SEQ': 1,
-        f'{domain}TESTCD': f'{domain}',
-        f'{domain}TEST': f'{domain} Test',
-        f'{domain}ORRES': '',
-        f'{domain}ORRESU': '',
-        f'{domain}STRESC': '',
-        f'{domain}DTC': '',
-        f'{domain}DY': '',
-        'VISITDY': '',
-        'EXTRT': 'Test Article',
-        'EXROUTE': 'ORAL',
-        'LBSPEC': 'SERUM',
-        'LBBLFL': 'N',
-        'MASTRESC': 'NORMAL',
-        'MISTRESC': 'NORMAL'
-    }
-    
-    return defaults.get(column, '')
 
 def _normalize_data_types(df: pd.DataFrame, domain: str) -> pd.DataFrame:
     """Normalize data types according to SEND specifications"""
@@ -550,31 +676,6 @@ def _apply_controlled_terminology(df: pd.DataFrame, domain: str) -> pd.DataFrame
     for col, mapping in ct_mappings.items():
         if col in df.columns:
             df[col] = df[col].astype(str).str.upper().map(mapping).fillna(df[col])
-    
-    return df
-
-def _validate_cross_references(df: pd.DataFrame, domain: str) -> pd.DataFrame:
-    """Validate and fix cross-references between variables"""
-    
-    # Ensure DOMAIN matches the domain parameter
-    if 'DOMAIN' in df.columns:
-        df['DOMAIN'] = domain
-    
-    # Ensure USUBJID format consistency
-    if 'USUBJID' in df.columns and 'STUDYID' in df.columns:
-        # Fix USUBJID format if needed
-        for idx, row in df.iterrows():
-            usubjid = str(row['USUBJID'])
-            studyid = str(row['STUDYID'])
-            
-            if studyid and studyid != 'nan' and not usubjid.startswith(studyid):
-                # Extract subject ID from USUBJID or generate one
-                if '-' in usubjid:
-                    subjid = usubjid.split('-')[-1]
-                else:
-                    subjid = usubjid
-                
-                df.at[idx, 'USUBJID'] = f"{studyid}-{subjid}"
     
     return df
 

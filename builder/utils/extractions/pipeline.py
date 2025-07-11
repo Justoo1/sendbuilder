@@ -18,6 +18,7 @@ from ..ai_model.config import ai_config
 from .prompts import ExtractionPrompts
 from builder.utils.send_utils import get_required_columns
 from .send_validator import post_process_domain_data
+from builder.models import Study
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,14 @@ class SimpleExtractionPipeline:
         logger.info(f"Starting extraction for study {study_id}, domain {domain_code}")
         logger.debug(f"Extraction config: chunk_size={self.config.chunk_size}, max_retries={self.config.max_retries}")
         
+        # ADDED: Get the Study object for context
+        try:
+            study = Study.objects.get(pk=study_id)
+            logger.info(f"Found study: {study.study_number} - {study.title}")
+        except Study.DoesNotExist:
+            logger.error(f"Study with ID {study_id} not found")
+            return {"success": False, "error": f"Study with ID {study_id} not found"}
+        
         # Initialize LLM
         logger.debug("Initializing LLM...")
         if not self._initialize_llm():
@@ -88,7 +97,8 @@ class SimpleExtractionPipeline:
             'pages': pages,
             'extracted_chunks': [],
             'errors': [],
-            'start_time': datetime.now()
+            'start_time': datetime.now(),
+            'study': study  # ADDED: Include study object in state
         }
         
         try:
@@ -96,8 +106,9 @@ class SimpleExtractionPipeline:
             for page_idx, page_num in enumerate(pages):
                 logger.info(f"Processing page {page_num} ({page_idx + 1}/{len(pages)})")
                 
+                # MODIFIED: Pass study context to extraction
                 chunk_result = self._extract_from_page(
-                    study_id, domain_code, page_num, page_idx + 1, len(pages)
+                    study_id, domain_code, page_num, page_idx + 1, len(pages), study
                 )
                 
                 if chunk_result['success']:
@@ -142,12 +153,13 @@ class SimpleExtractionPipeline:
             
             logger.info(f"Successfully parsed data into DataFrame with {len(df)} records")
             
-            # Step 4: Post-process data
-            logger.info("Post-processing data")
+            # Step 4: Post-process data - MODIFIED to pass study object
+            logger.info("Post-processing data with study context")
             logger.debug(f"Pre-processing DataFrame: {len(df)} records, columns: {list(df.columns)}")
             logger.debug(f"Sample data:\n{df.head(3).to_string()}")
             
-            processed_df = post_process_domain_data(df, domain_code)
+            # FIXED: Pass study object to post_process_domain_data
+            processed_df = post_process_domain_data(df, domain_code, study)
             logger.info(f"Post-processing complete. Final record count: {len(processed_df)}")
             logger.debug(f"Post-processed DataFrame columns: {list(processed_df.columns)}")
             
@@ -175,7 +187,8 @@ class SimpleExtractionPipeline:
                     "record_count": len(processed_df),
                     "pages_processed": len(pages),
                     "processing_time": (datetime.now() - extraction_state['start_time']).total_seconds(),
-                    "model_config": ai_config.get_model_config('CHAT')
+                    "model_config": ai_config.get_model_config('CHAT'),
+                    "study_number": study.study_number  # ADDED: Include study context in response
                 },
                 "errors": extraction_state['errors']  # Include any non-fatal errors
             }
@@ -187,9 +200,9 @@ class SimpleExtractionPipeline:
                 "error": str(e),
                 "errors": extraction_state['errors']
             }
-    
+        
     def _extract_from_page(self, study_id: int, domain_code: str, page_num: int, 
-                          current_page: int, total_pages: int) -> Dict[str, Any]:
+                      current_page: int, total_pages: int, study=None) -> Dict[str, Any]:
         """Extract data from a single page with retries"""
         
         # Get page content
@@ -207,10 +220,12 @@ class SimpleExtractionPipeline:
             try:
                 logger.info(f"Extraction attempt {attempt + 1}/{self.config.max_retries} for page {page_num}")
                 
-                # Create extraction prompt
+                # Create extraction prompt with study context
                 chunk_info = {"current": current_page, "total": total_pages}
+                
+                # MODIFIED: Pass study context to prompt generation
                 prompt_text = self.prompts.get_domain_extraction_prompt(
-                    domain_code, content, chunk_info
+                    domain_code, content, chunk_info, study
                 )
                 
                 # Create prompt template and chain

@@ -23,8 +23,8 @@ class ExtractionPrompts:
                 Always return data in valid CSV format with proper headers."""
 
     @staticmethod
-    def get_domain_extraction_prompt(domain: str, text: str, chunk_info: Dict = None) -> str:
-        """Generate domain-specific extraction prompt"""
+    def get_domain_extraction_prompt(domain: str, text: str, chunk_info: Dict = None, study=None) -> str:
+        """Generate domain-specific extraction prompt with study context"""
         
         domain_desc = get_domain_description(domain)
         required_cols = get_required_columns(domain)
@@ -44,6 +44,20 @@ class ExtractionPrompts:
                 - Maintain consistent formatting for data combination
                 """
 
+        # ADDED: Study context for STUDYID/USUBJID validation
+        study_context = ""
+        expected_studyid = "UNKNOWN"
+        if study:
+            expected_studyid = getattr(study, 'study_number', 'UNKNOWN')
+            study_context = f"""
+                STUDY CONTEXT:
+                - Study Number: {expected_studyid}
+                - Study Title: {getattr(study, 'title', 'N/A')}
+                - Species: {getattr(study, 'species', 'N/A')}
+                - CRITICAL: STUDYID must ALWAYS be exactly "{expected_studyid}" (no additional numbers or characters)
+                - USUBJID format must be "{expected_studyid}-XXX" where XXX is the subject number (e.g., {expected_studyid}-001, {expected_studyid}-002)
+                """
+
         # Create the required columns string for explicit requirements
         required_cols_str = ", ".join(required_cols)
 
@@ -53,9 +67,18 @@ class ExtractionPrompts:
         KEY COLUMNS TO EXTRACT:
         {chr(10).join(key_columns_info)}
 
+        {study_context}
+
         {chunk_context}
 
-        CRITICAL REQUIREMENTS:
+        CRITICAL REQUIREMENTS FOR IDENTIFIERS:
+        - STUDYID: Must be EXACTLY "{expected_studyid}" for ALL records
+        - USUBJID: Must follow format "{expected_studyid}-XXX" where XXX is 3-digit subject number
+        - DO NOT add extra numbers to STUDYID (e.g., "{expected_studyid}-003" is WRONG as STUDYID)
+        - Examples of CORRECT USUBJID: {expected_studyid}-001, {expected_studyid}-002, {expected_studyid}-015
+        - Examples of WRONG formats: {expected_studyid}-003 as STUDYID, or {expected_studyid}-001-002 as USUBJID
+
+        CSV STRUCTURE REQUIREMENTS:
         - The output CSV MUST include ALL of these required columns: {required_cols_str}
         - If any required column data is not found in the content, include the column with empty values
         - For {domain} domain, ensure all required columns are present in the header row
@@ -64,16 +87,24 @@ class ExtractionPrompts:
         MANDATORY CSV HEADER:
         {required_cols_str}
 
-        INSTRUCTIONS:
+        EXTRACTION INSTRUCTIONS:
         1. Analyze the provided text for {domain} domain data
-        2. USUBJID should be formatted as STUDYID-SUBJID and be globally unique
-        3. Extract all relevant data points according to column descriptions
-        4. Format as CSV with appropriate SEND columns starting with the exact header above
-        5. Include required columns: STUDYID, DOMAIN, USUBJID
-        6. Ensure sequence numbers are unique per subject
-        7. Use ISO date format (YYYY-MM-DD) where applicable
-        8. Follow controlled terminology where specified
-        9. IMPORTANT: Your CSV must start with exactly this header: {required_cols_str}
+        2. Set STUDYID to "{expected_studyid}" for ALL records (never vary this)
+        3. Format USUBJID as "{expected_studyid}-XXX" where XXX is the subject identifier
+        4. Extract all relevant data points according to column descriptions
+        5. Format as CSV with appropriate SEND columns starting with the exact header above
+        6. Include required columns: STUDYID, DOMAIN, USUBJID
+        7. Ensure sequence numbers are unique per subject
+        8. Use ISO date format (YYYY-MM-DD) where applicable
+        9. Follow controlled terminology where specified
+        10. IMPORTANT: Your CSV must start with exactly this header: {required_cols_str}
+
+        VALIDATION EXAMPLES:
+        ✓ CORRECT STUDYID: {expected_studyid}
+        ✗ WRONG STUDYID: {expected_studyid}-001, {expected_studyid}-003, Study{expected_studyid}
+        
+        ✓ CORRECT USUBJID: {expected_studyid}-001, {expected_studyid}-042, {expected_studyid}-156
+        ✗ WRONG USUBJID: {expected_studyid}, {expected_studyid}-001-A, {expected_studyid}-A001
 
         TEXT TO ANALYZE:
         {text}
@@ -87,6 +118,7 @@ class ExtractionPrompts:
             base_prompt += f"\n\nDOMAIN-SPECIFIC REQUIREMENTS:\n{domain_instructions}"
         
         return base_prompt
+
     
     @staticmethod
     def _get_domain_specific_instructions(domain: str) -> str:

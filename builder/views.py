@@ -1,4 +1,7 @@
 import logging
+import zipfile
+import io
+import pandas as pd
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
 from django.contrib import messages
@@ -708,4 +711,107 @@ class ExtractAllDomainsView(View):
             
         except Exception as e:
             logger.error(f"Bulk extraction failed for {domain_code}: {e}")
+
+
+class DownloadAllFilesView(View):
+    """Download all files (domain CSV, XPT, and FDA files) as a single ZIP"""
+    
+    def get(self, request, study_id):
+        try:
+            study = get_object_or_404(Study, study_id=study_id)
+            extracted_domains = ExtractedDomain.objects.filter(study=study).select_related('domain')
+            fda_files = FDAFile.objects.filter(study=study)
+            
+            # Check if there are any files to download
+            if not extracted_domains.exists() and not fda_files.exists():
+                return HttpResponse('No files available for download', status=404)
+            
+            # Create a BytesIO buffer to hold the zip file
+            zip_buffer = io.BytesIO()
+            
+            with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                # Add domain CSV files
+                for domain in extracted_domains:
+                    if domain.content:
+                        try:
+                            # Create CSV from domain content
+                            df = pd.DataFrame(domain.content)
+                            csv_content = df.to_csv(index=False)
+                            zip_file.writestr(f"domains/{domain.domain.code}.csv", csv_content)
+                            logger.info(f"Added CSV for domain {domain.domain.code}")
+                        except Exception as e:
+                            logger.error(f"Error creating CSV for domain {domain.domain.code}: {e}")
+                    
+                    # Add XPT files if they exist
+                    if domain.xpt_file:
+                        try:
+                            domain.xpt_file.seek(0)  # Reset file pointer
+                            zip_file.writestr(f"domains/{domain.domain.code}.xpt", domain.xpt_file.read())
+                            logger.info(f"Added XPT for domain {domain.domain.code}")
+                        except Exception as e:
+                            logger.error(f"Error adding XPT for domain {domain.domain.code}: {e}")
+                
+                # Add FDA files
+                for fda_file in fda_files:
+                    if fda_file.file:
+                        try:
+                            fda_file.file.seek(0)  # Reset file pointer
+                            zip_file.writestr(f"fda/{fda_file.name}", fda_file.file.read())
+                            logger.info(f"Added FDA file {fda_file.name}")
+                        except Exception as e:
+                            logger.error(f"Error adding FDA file {fda_file.name}: {e}")
+                
+                # Add a summary file
+                summary_content = self._create_summary_file(study, extracted_domains, fda_files)
+                zip_file.writestr("README.txt", summary_content)
+            
+            zip_buffer.seek(0)
+            
+            # Create response
+            response = HttpResponse(zip_buffer.read(), content_type='application/zip')
+            response['Content-Disposition'] = f'attachment; filename="study_{study.study_number}_all_files.zip"'
+            
+            logger.info(f"Successfully created ZIP file for study {study.study_id}")
+            return response
+            
+        except Exception as e:
+            logger.error(f"Error creating ZIP file for study {study_id}: {e}")
+            return HttpResponse(f'Error creating ZIP file: {str(e)}', status=500)
+    
+    def _create_summary_file(self, study, extracted_domains, fda_files):
+        """Create a summary file for the ZIP contents"""
+        summary = f"""Study Data Export Summary
+            ========================
+
+            Study Information:
+            - Study ID: {study.study_number}
+            - Title: {study.title or 'N/A'}
+            - Description: {study.description or 'N/A'}
+            - Export Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+
+            Extracted Domains ({len(extracted_domains)} total):
+            """
+        
+        for domain in extracted_domains:
+            record_count = len(domain.content) if domain.content else 0
+            has_xpt = "Yes" if domain.xpt_file else "No"
+            summary += f"- {domain.domain.code}: {record_count} records, XPT file: {has_xpt}\n"
+        
+        summary += f"\nFDA Files ({len(fda_files)} total):\n"
+        for fda_file in fda_files:
+            summary += f"- {fda_file.name}\n"
+        
+        summary += """
+            File Structure:
+            - domains/: Contains CSV and XPT files for each extracted domain
+            - fda/: Contains FDA submission files
+            - README.txt: This summary file
+
+            Notes:
+            - CSV files contain the extracted tabular data
+            - XPT files are in SAS transport format for FDA submission
+            - All files are organized by type for easy identification
+            """
+        
+        return summary
 

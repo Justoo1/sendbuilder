@@ -52,20 +52,69 @@ DOMAIN_PATTERNS = {
     'TE': {
         'name': 'Trial Elements',
         'patterns': [
+            # Original patterns (keep these)
             r'(?i)trial.{0,20}elements',
             r'(?i)study.{0,20}elements',
             r'(?i)experiment.{0,20}elements',
             r'(?i)study.{0,20}phases',
+            
+            # NEW: Enhanced patterns for better detection
+            r'(?i)study.{0,20}schedule',                    # "Study Schedule" sections
+            r'(?i)experimental.{0,20}design',               # "Experimental Design" 
+            r'(?i)treatment.{0,20}regimen',                 # Treatment regimens
+            r'(?i)dosing.{0,20}period',                     # "Dosing Period"
+            r'(?i)acclimation.{0,20}period',               # "Acclimation Period"
+            r'(?i)recovery.{0,20}period',                   # "Recovery Period"
+            r'(?i)necropsy.{0,20}period',                   # "Necropsy Period"
+            r'(?i)study.{0,20}day.{0,20}\d+',              # "Study Day 1", "Day -1"
+            r'(?i)day.{0,20}[-]?\d+',                       # "Day 1", "Day -1"
+            r'(?i)screening.{0,20}period',                  # "Screening Period"
+            r'(?i)observation.{0,20}period',               # "Observation Period"
+            r'(?i)first.{0,20}day.{0,20}of.{0,20}dosing',  # Temporal elements
+            r'(?i)consecutive.{0,20}days',                  # Duration elements
+            r'(?i)study.{0,20}duration',                    # Study duration
+            r'(?i)timeline',                                # Study timeline
+            r'(?i)epoch',                                   # Clinical epochs
+            r'(?i)treatment.{0,20}regimen',                 # Treatment regimen
+            r'(?i)study.{0,20}conduct',                     # Study conduct
+            r'(?i)study.{0,20}procedures',                  # Study procedures
         ]
     },
     'TX': {
         'name': 'Trial Sets',
         'patterns': [
+            # Comprehensive TX patterns for treatment definitions
             r'(?i)trial.{0,20}sets',
             r'(?i)experimental.{0,20}design',
-            r'(?i)group.{0,5}(\d+).{0,20}dose.{0,20}level',
-            r'(?i)dose.{0,20}groups',
-            r'(?i)treatment.{0,20}groups',
+            r'(?i)treatment.{0,20}groups?',
+            r'(?i)dose.{0,20}groups?',
+            r'(?i)study.{0,20}groups?',
+            r'(?i)group.{0,20}organization',
+            r'(?i)dosage.{0,20}levels?',
+            r'(?i)treatment.{0,20}arms',
+            r'(?i)dose.{0,20}levels?',
+            r'(?i)formulation.{0,20}concentration',
+            r'(?i)dose.{0,20}volume',
+            r'(?i)mg/kg/day',
+            r'(?i)mg/kg',
+            r'(?i)vehicle.{0,20}control',
+            r'(?i)test.{0,20}article',
+            r'(?i)treatment.{0,20}regimen',
+            r'(?i)dosing.{0,20}schedule',
+            r'(?i)administration.{0,20}route',
+            r'(?i)oral.{0,20}gavage',
+            r'(?i)number.{0,20}of.{0,20}animals',
+            r'(?i)group.{0,5}\d+.*mg/kg',                   # "Group 1: 10 mg/kg"
+            r'(?i)justification.{0,20}of.{0,20}dosage',     # Dose justification
+            r'(?i)organization.{0,20}of.{0,20}test.{0,20}groups', # Group organization
+            r'(?i)study.{0,20}group.{0,20}arrangement',     # Study arrangement
+            r'(?i)treatment.{0,20}table',                   # Treatment tables
+            r'(?i)dose.{0,20}table',                        # Dose tables
+            r'(?i)group.{0,20}table',                       # Group tables
+            r'(?i)experimental.{0,20}groups?',              # Experimental groups
+            r'(?i)control.{0,20}group',                     # Control group
+            r'(?i)test.{0,20}group',                        # Test groups
+            r'(?i)dosing.{0,20}group',                      # Dosing groups
         ]
     },
     'PP': {
@@ -79,9 +128,29 @@ DOMAIN_PATTERNS = {
     'SE': {
         'name': 'Subject Elements',
         'patterns': [
+            # Original patterns (keep these)
             r'(?i)subject.{0,20}elements',
             r'(?i)animal.{0,20}elements',
             r'(?i)subject.{0,20}segments',
+            
+            # NEW: Enhanced patterns for subject assignments
+            r'(?i)randomization',                           # Randomization sections
+            r'(?i)group.{0,20}assignment',                 # Group assignments
+            r'(?i)animal.{0,20}assignment',                # Animal assignments
+            r'(?i)subject.{0,20}assignment',               # Subject assignments
+            r'(?i)treatment.{0,20}assignment',             # Treatment assignments
+            r'(?i)allocation',                              # Subject allocation
+            r'(?i)animal.{0,20}receipt',                    # Animal receipt and assignment
+            r'(?i)animals.{0,20}judged.{0,20}to.{0,20}be', # Randomization text
+            r'(?i)placed.{0,20}into.{0,20}appropriate',    # Assignment procedures
+            r'(?i)stepwise.{0,20}fashion',                  # Allocation method
+            r'(?i)animal.{0,20}number.{0,20}\d+',          # Animal numbering
+            r'(?i)subject.{0,20}\d+',                       # Subject numbering
+            r'(?i)identification.{0,20}system',            # ID system descriptions
+            r'(?i)cage.{0,20}cards',                        # Animal housing assignments
+            r'(?i)individual.{0,20}animal',                # Individual animal references
+            r'(?i)animal.{0,20}identif',                    # Animal identification
+            r'(?i)subject.{0,20}identif',                   # Subject identification
         ]
     },
     

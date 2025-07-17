@@ -100,11 +100,6 @@
     "description": "Defined parts of the trial like dosing or recovery phases."
   },
   {
-    "code": "TX",
-    "name": "Trial Sets",
-    "description": "Treatment set definitions and parameters for trial arms"
-  },
-  {
     "code": "FA",
     "name": "Findings About",
     "description": "Details or clarifications about findings in other domains."
@@ -150,9 +145,24 @@
     "description": "Samples collected for immunogenicity testing."
   },
   {
+    "code": "MA",
+    "name": "Macroscopic Findings",
+    "description": "Findings visible to the naked eye during necropsy."
+  },
+  {
+    "code": "MI",
+    "name": "Microscopic Findings",
+    "description": "Findings observed via microscope."
+  },
+  {
     "code": "FW",
     "name": "Food and Water Consumption",
     "description": "Daily food and water consumption measurements for animals."
+  },
+  {
+    "code": "TX",
+    "name": "Trial Sets",
+    "description": "Treatment set definitions and parameters for trial arms"
   },
   {
     "code": "CO",

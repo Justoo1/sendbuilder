@@ -21,6 +21,7 @@ urlpatterns = [
     path('extraction/<int:study_id>/status/<str:domain_code>/', views.ExtractionStatusView.as_view(), name='extraction_status'),
     path('extraction/<int:study_id>/generate-fda/', views.GenerateFDAFilesView.as_view(), name='generate_fda'),
     path('extraction/<int:study_id>/results/', views.ResultsView.as_view(), name='results'),
+    path('extraction/<int:study_id>/download/all/', views.DownloadAllFilesView.as_view(), name='download_all_files'),
     path('extraction/<int:study_id>/download/<str:file_type>/', views.DownloadFileView.as_view(), name='download_file'),
     path('extraction/<int:study_id>/download/<str:file_type>/<str:domain_code>/', views.DownloadFileView.as_view(), name='download_domain_file'),
 

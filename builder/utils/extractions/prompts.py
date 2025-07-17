@@ -438,6 +438,23 @@ class ExtractionPrompts:
             - FWORRESU: Include original units (g, mL, g/day, mL/day, etc.)
             - Extract both individual and group consumption data
             - Include consumption per animal and per cage when available
+            """,
+            'CO': f"""
+            Comments Domain (CO):
+            Required columns and their meanings:
+            {column_text}
+
+            Extraction Guidelines:
+            - Extract comments, notes, or additional explanations related to specific data points
+            - IDVAR: Variable name that the comment refers to (e.g., 'CLSTRESC', 'MAORRES', 'LBORRES')
+            - IDVARVAL: Value of the variable that the comment refers to
+            - COREF: Reference to the specific record or context
+            - COEVAL: Role of the person making the comment (INVESTIGATOR, SPONSOR, etc.)
+            - COCOMM: The actual comment text as recorded
+            - Extract investigator notes, sponsor comments, or clarifications
+            - Include comments about data quality, unusual findings, or methodology
+            - Link comments to specific records using USUBJID and sequence numbers
+            - Preserve original comment language and context
             """
         }
         

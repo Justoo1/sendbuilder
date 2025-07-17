@@ -45,7 +45,8 @@ def get_required_columns(domain: str) -> List[str]:
         'PM': ['STUDYID', 'DOMAIN', 'USUBJID', 'PMSEQ', 'PMTESTCD', 'PMTEST', 'PMORRES', 'PMORRESU', 'PMDTC'],
         'EG': ['STUDYID', 'DOMAIN', 'USUBJID', 'EGSEQ', 'EGTESTCD', 'EGTEST', 'EGORRES', 'EGORRESU', 'EGDTC'],
         'CV': ['STUDYID', 'DOMAIN', 'USUBJID', 'CVSEQ', 'CVTESTCD', 'CVTEST', 'CVORRES', 'CVORRESU', 'CVDTC'],
-        'VS': ['STUDYID', 'DOMAIN', 'USUBJID', 'VSSEQ', 'VSTESTCD', 'VSTEST', 'VSORRES', 'VSORRESU', 'VSDTC']
+        'VS': ['STUDYID', 'DOMAIN', 'USUBJID', 'VSSEQ', 'VSTESTCD', 'VSTEST', 'VSORRES', 'VSORRESU', 'VSDTC'],
+        'CO': ['STUDYID', 'DOMAIN', 'USUBJID', 'COSEQ', 'IDVAR', 'IDVARVAL', 'COREF', 'COEVAL', 'COCOMM'],
     }
     
     # Apply default requirements if not in the map
@@ -95,7 +96,8 @@ def get_domain_description(domain: str) -> str:
         'PM': 'Physical Measurements - Physical measurements other than body weight.',
         'EG': 'ECG Test Results - Electrocardiogram test results.',
         'CV': 'Cardiovascular Test Results - Cardiovascular test results.',
-        'VS': 'Vital Signs - Vital signs measurements.'
+        'VS': 'Vital Signs - Vital signs measurements.',
+        'CO': 'Comments - Comments related to a specific variable, record, or dataset.',
     }
     
     return descriptions.get(domain, f"Domain {domain}")
@@ -354,7 +356,17 @@ def get_column_description(domain: str, column: str) -> str:
             'PCSPEC': 'Specimen Material Type',
             'PCDTC': 'Date/Time of Specimen Collection',
             'PCDY': 'Study Day of Specimen Collection'
-        }
+        },
+        'CO': {
+            'COSEQ': 'Sequence Number',
+            'IDVAR': 'Identifying Variable Name',
+            'IDVARVAL': 'Identifying Variable Value',
+            'COREF': 'Comment Reference',
+            'COEVAL': 'Comment Evaluator',
+            'COCOMM': 'Comment',
+            'CODT': 'Date of Comment',
+            'COOBJ': 'Object of Comment'
+        },
     }
     
     # Check if column is in common descriptions

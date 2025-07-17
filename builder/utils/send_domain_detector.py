@@ -16,6 +16,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 # Import your existing patterns
 from .patterns import DOMAIN_PATTERNS
 from .send_validation import validate_domain_content
+from .structural_domain_generator import StructuralDomainGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -269,6 +270,9 @@ class SENDDomainDetector:
         self.DetectedDomain = detected_domain_model
         self.Domain = domain_model
         self.validator = SENDDataValidator()
+        self.structural_generator = StructuralDomainGenerator(
+            study_content_model, detected_domain_model, domain_model
+        )
         
     def detect_domains_for_study(self, study, options=None) -> Dict[str, any]:
         """
@@ -539,6 +543,57 @@ class SENDDomainDetector:
         
         return groups
 
+    def detect_domains_with_structural_generation(self, study, options=None) -> Dict[str, any]:
+        """
+        Enhanced detection that includes structural domain generation
+        """
+        
+        normal_results = self.detect_domains_for_study(
+            study, options
+        )
+        
+        if not normal_results['success']:
+            return normal_results
+        
+        # Get currently detected domains
+        detected_codes = [d['domain_code'] for d in normal_results.get('detections', [])]
+        
+        # Check for missing structural domains and generate them
+        missing_structural = []
+        structural_domains = ['TE', 'SE', 'TX']
+        
+        for domain_code in structural_domains:
+            if domain_code not in detected_codes:
+                missing_structural.append(domain_code)
+        
+        # Generate missing structural domains
+        if missing_structural:
+            print(f"Attempting to generate missing structural domains: {missing_structural}")
+            generation_results = self.structural_generator.generate_missing_structural_domains(study)
+            
+            # Update results with generated domains
+            for domain_code, generated in generation_results.items():
+                if generated and domain_code in missing_structural:
+                    # Add to detected domains list
+                    domain_obj = self.Domain.objects.get(code=domain_code)
+                    normal_results['detections'].append({
+                        'id': None,  # Will be set when saved
+                        'domain_code': domain_code,
+                        'domain_name': domain_obj.name,
+                        'pages': [],
+                        'page_count': 0,
+                        'confidence': 85,
+                        'evidence': ['Generated from study structure'],
+                        'data_types': ['generated']
+                    })
+                    normal_results['detected_domains'] += 1
+        
+        # Update summary
+        normal_results['summary']['generated_domains'] = len([
+            d for d in normal_results['detections'] if 'generated' in d.get('data_types', [])
+        ])
+        
+        return normal_results
 
 # Utility functions for easy usage (PRESERVED FROM ORIGINAL)
 def detect_domains_for_study(study, study_content_model, detected_domain_model, domain_model, options=None):
@@ -560,7 +615,8 @@ def detect_domains_for_study(study, study_content_model, detected_domain_model, 
         detected_domain_model, 
         domain_model
     )
-    return detector.detect_domains_for_study(study, options)
+    # return detector.detect_domains_for_study(study, options)
+    return detector.detect_domains_with_structural_generation(study, options)
 
 
 def get_detection_summary(study, detected_domain_model):

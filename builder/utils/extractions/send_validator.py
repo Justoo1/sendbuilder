@@ -130,7 +130,17 @@ def _get_default_value(column: str, domain: str, df: pd.DataFrame, study=None) -
         'LBSPEC': 'SERUM',
         'LBBLFL': 'N',
         'MASTRESC': 'NORMAL',
-        'MISTRESC': 'NORMAL'
+        'MISTRESC': 'NORMAL',
+        'PCSPEC': 'PLASMA',
+        'PCTESTCD': 'PARENT',
+        'PCTEST': 'Parent Compound',
+        'PCORRESU': 'ng/mL',
+        'PCSTRESU': 'ng/mL',
+        'DDTESTCD': 'NECROPSY',
+        'DDTEST': 'Cause of Death',
+        'DDEVAL': 'PATHOLOGIST',
+        'DDCAT': 'PRIMARY',
+        'DDSTRESC': 'SCHEDULED SACRIFICE',
     }
     
     return defaults.get(column, '')
@@ -303,7 +313,53 @@ def _standardize_column_names(df: pd.DataFrame, domain: str) -> pd.DataFrame:
             'route': 'EXROUTE',
             'start_date': 'EXSTDTC',
             'end_date': 'EXENDTC'
-        }
+        },
+        'PC': {
+            'sequence': 'PCSEQ',
+            'seq': 'PCSEQ',
+            'test_code': 'PCTESTCD',
+            'testcd': 'PCTESTCD',
+            'test_name': 'PCTEST',
+            'test': 'PCTEST',
+            'result': 'PCORRES',
+            'original_result': 'PCORRES',
+            'unit': 'PCORRESU',
+            'units': 'PCORRESU',
+            'original_unit': 'PCORRESU',
+            'specimen': 'PCSPEC',
+            'spec': 'PCSPEC',
+            'date': 'PCDTC',
+            'collection_date': 'PCDTC',
+            'day': 'PCDY',
+            'study_day': 'PCDY',
+            'standard_result': 'PCSTRESC',
+            'standard_unit': 'PCSTRESU',
+            'numeric_result': 'PCSTRESN'
+        },
+        'DD': {
+            'sequence': 'DDSEQ',
+            'seq': 'DDSEQ',
+            'test_code': 'DDTESTCD',
+            'testcd': 'DDTESTCD',
+            'test_name': 'DDTEST',
+            'test': 'DDTEST',
+            'result': 'DDORRES',
+            'original_result': 'DDORRES',
+            'finding': 'DDORRES',
+            'diagnosis': 'DDORRES',
+            'cause': 'DDORRES',
+            'cause_of_death': 'DDORRES',
+            'standard_result': 'DDSTRESC',
+            'standard_finding': 'DDSTRESC',
+            'date': 'DDDTC',
+            'death_date': 'DDDTC',
+            'day': 'DDDY',
+            'study_day': 'DDDY',
+            'evaluator': 'DDEVAL',
+            'pathologist': 'DDEVAL',
+            'category': 'DDCAT',
+            'subcategory': 'DDSCAT'
+        },
     }
     
     # Apply general mappings
@@ -482,6 +538,12 @@ def _apply_domain_transformations(df: pd.DataFrame, domain: str) -> pd.DataFrame
         df = _transform_macro_findings(df)
     elif domain == 'MI':
         df = _transform_micro_findings(df)
+    elif domain == 'CO':
+        df = _transform_comments(df)
+    elif domain == 'PC':
+        df = _transform_pharmacokinetic_concentrations(df)
+    elif domain == 'DD':
+        df = _transform_death_diagnosis(df)
     
     return df
 
@@ -578,6 +640,172 @@ def _transform_micro_findings(df: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
+def _transform_comments(df: pd.DataFrame) -> pd.DataFrame:
+    """Transform comments data"""
+    
+    # Set default evaluator if not provided
+    if 'COEVAL' not in df.columns:
+        df['COEVAL'] = 'INVESTIGATOR'
+    
+    # Ensure COREF is populated
+    if 'COREF' not in df.columns:
+        df['COREF'] = 'GENERAL'
+    
+    # Clean up comment text
+    if 'COCOMM' in df.columns:
+        df['COCOMM'] = df['COCOMM'].astype(str).str.strip()
+        df['COCOMM'] = df['COCOMM'].replace(['nan', 'None', 'NaN'], '')
+    
+    return df
+
+def _transform_pharmacokinetic_concentrations(df: pd.DataFrame) -> pd.DataFrame:
+    """Transform pharmacokinetic concentrations data"""
+    
+    # Set default specimen type if not provided
+    if 'PCSPEC' not in df.columns:
+        df['PCSPEC'] = 'PLASMA'
+    
+    # Standardize specimen terminology
+    if 'PCSPEC' in df.columns:
+        spec_mapping = {
+            'BLOOD': 'BLOOD',
+            'PLASMA': 'PLASMA', 
+            'SERUM': 'SERUM',
+            'URINE': 'URINE',
+            'CSF': 'CSF',
+            'TISSUE': 'TISSUE'
+        }
+        df['PCSPEC'] = df['PCSPEC'].astype(str).str.upper().map(spec_mapping).fillna(df['PCSPEC'])
+    
+    # Set default test codes for common analytes
+    if 'PCTESTCD' not in df.columns and 'PCTEST' in df.columns:
+        df['PCTESTCD'] = df['PCTEST'].apply(_generate_pc_test_code)
+    
+    # Ensure PCSTRESC is populated from PCORRES
+    if 'PCSTRESC' not in df.columns and 'PCORRES' in df.columns:
+        df['PCSTRESC'] = df['PCORRES'].astype(str).str.strip()
+    
+    # Convert numeric results to PCSTRESN
+    if 'PCSTRESN' not in df.columns and 'PCORRES' in df.columns:
+        df['PCSTRESN'] = df['PCORRES'].apply(_convert_to_numeric_result)
+    
+    # Standardize units
+    if 'PCORRESU' in df.columns:
+        unit_mapping = {
+            'NG/ML': 'ng/mL',
+            'UG/ML': 'μg/mL', 
+            'MG/ML': 'mg/mL',
+            'NMOL/L': 'nmol/L',
+            'UMOL/L': 'μmol/L',
+            'MMOL/L': 'mmol/L'
+        }
+        df['PCORRESU'] = df['PCORRESU'].astype(str).str.upper().map(unit_mapping).fillna(df['PCORRESU'])
+    
+    # Copy original units to standard units if not provided
+    if 'PCSTRESU' not in df.columns and 'PCORRESU' in df.columns:
+        df['PCSTRESU'] = df['PCORRESU']
+    
+    return df
+
+def _transform_death_diagnosis(df: pd.DataFrame) -> pd.DataFrame:
+    """Transform death diagnosis data"""
+    
+    # Set default test codes for death diagnosis
+    if 'DDTESTCD' not in df.columns:
+        df['DDTESTCD'] = 'NECROPSY'
+    
+    if 'DDTEST' not in df.columns:
+        df['DDTEST'] = 'Cause of Death'
+    
+    # Standardize evaluator terminology
+    if 'DDEVAL' not in df.columns:
+        df['DDEVAL'] = 'PATHOLOGIST'
+    
+    if 'DDEVAL' in df.columns:
+        eval_mapping = {
+            'PATHOLOGIST': 'PATHOLOGIST',
+            'VETERINARIAN': 'VETERINARIAN', 
+            'INVESTIGATOR': 'INVESTIGATOR',
+            'SPONSOR': 'SPONSOR',
+            'CLINICIAN': 'VETERINARIAN'
+        }
+        df['DDEVAL'] = df['DDEVAL'].astype(str).str.upper().map(eval_mapping).fillna(df['DDEVAL'])
+    
+    # Standardize death diagnosis results
+    if 'DDSTRESC' not in df.columns and 'DDORRES' in df.columns:
+        df['DDSTRESC'] = df['DDORRES'].apply(_standardize_death_diagnosis)
+    
+    # Set default category
+    if 'DDCAT' not in df.columns:
+        df['DDCAT'] = 'PRIMARY'
+    
+    # Standardize category terminology
+    if 'DDCAT' in df.columns:
+        cat_mapping = {
+            'PRIMARY': 'PRIMARY',
+            'SECONDARY': 'SECONDARY',
+            'CONTRIBUTING': 'CONTRIBUTING',
+            'IMMEDIATE': 'IMMEDIATE',
+            'UNDERLYING': 'UNDERLYING'
+        }
+        df['DDCAT'] = df['DDCAT'].astype(str).str.upper().map(cat_mapping).fillna(df['DDCAT'])
+    
+    return df
+
+def _generate_pc_test_code(test_name: str) -> str:
+    """Generate PC test code from test name"""
+    if pd.isna(test_name) or test_name == '':
+        return 'PARENT'
+    
+    # Common PC test code mappings
+    test_codes = {
+        'parent': 'PARENT',
+        'parent compound': 'PARENT',
+        'unchanged': 'PARENT',
+        'metabolite': 'METAB1',
+        'metabolite 1': 'METAB1',
+        'metabolite 2': 'METAB2',
+        'active metabolite': 'ACTMET',
+        'total': 'TOTAL',
+        'free': 'FREE',
+        'bound': 'BOUND'
+    }
+    
+    test_lower = str(test_name).lower().strip()
+    
+    for key, code in test_codes.items():
+        if key in test_lower:
+            return code
+    
+    # Generate code from test name
+    if len(test_name) <= 8:
+        return test_name.upper()
+    else:
+        # Take first 8 characters
+        return test_name[:8].upper()
+
+def _convert_to_numeric_result(result: str) -> float:
+    """Convert PC result to numeric value"""
+    if pd.isna(result) or result == '':
+        return float('nan')
+    
+    result_str = str(result).strip()
+    
+    # Handle common non-numeric results
+    if result_str.upper() in ['BLQ', 'BELOW LIMIT OF QUANTIFICATION', '<LOQ', 'ND', 'NOT DETECTED']:
+        return float('nan')  # Or return 0 based on your requirements
+    
+    # Try to extract numeric value
+    try:
+        # Remove common non-numeric characters but keep decimal point
+        cleaned = re.sub(r'[^\d\.\-\+eE]', '', result_str)
+        if cleaned and cleaned not in ['.', '-', '+']:
+            return float(cleaned)
+    except (ValueError, AttributeError):
+        pass
+    
+    return float('nan')
+
 def _generate_test_code(test_name: str) -> str:
     """Generate test code from test name"""
     if pd.isna(test_name) or test_name == '':
@@ -634,6 +862,65 @@ def _standardize_finding_result(result: str) -> str:
         return 'NORMAL'
     else:
         return 'ABNORMAL'
+
+def _standardize_death_diagnosis(diagnosis: str) -> str:
+    """Standardize death diagnosis terminology"""
+    if pd.isna(diagnosis) or diagnosis == '':
+        return ''
+    
+    diagnosis_lower = str(diagnosis).lower().strip()
+    
+    # Common death diagnosis mappings
+    diagnosis_mappings = {
+        # Scheduled termination
+        'scheduled sacrifice': 'SCHEDULED SACRIFICE',
+        'scheduled termination': 'SCHEDULED SACRIFICE',
+        'terminal sacrifice': 'SCHEDULED SACRIFICE',
+        'study termination': 'SCHEDULED SACRIFICE',
+        'planned sacrifice': 'SCHEDULED SACRIFICE',
+        
+        # Natural death
+        'found dead': 'FOUND DEAD',
+        'natural death': 'FOUND DEAD',
+        'spontaneous death': 'FOUND DEAD',
+        
+        # Moribund sacrifice
+        'moribund sacrifice': 'MORIBUND SACRIFICE',
+        'moribund': 'MORIBUND SACRIFICE',
+        'euthanized moribund': 'MORIBUND SACRIFICE',
+        'humane endpoint': 'MORIBUND SACRIFICE',
+        
+        # Accidental death
+        'accidental death': 'ACCIDENTAL DEATH',
+        'accident': 'ACCIDENTAL DEATH',
+        'handling accident': 'ACCIDENTAL DEATH',
+        'procedural accident': 'ACCIDENTAL DEATH',
+        
+        # Euthanasia
+        'euthanized': 'EUTHANIZED',
+        'euthanasia': 'EUTHANIZED',
+        'humane euthanasia': 'EUTHANIZED',
+        
+        # Specific causes
+        'organ failure': 'ORGAN FAILURE',
+        'respiratory failure': 'RESPIRATORY FAILURE',
+        'cardiac failure': 'CARDIAC FAILURE',
+        'renal failure': 'RENAL FAILURE',
+        'hepatic failure': 'HEPATIC FAILURE',
+        'neurological': 'NEUROLOGICAL',
+        'tumor': 'NEOPLASM',
+        'neoplasm': 'NEOPLASM',
+        'cancer': 'NEOPLASM'
+    }
+    
+    # Check for exact matches first
+    for key, standardized in diagnosis_mappings.items():
+        if key in diagnosis_lower:
+            return standardized
+    
+    # If no mapping found, return original diagnosis in uppercase
+    return str(diagnosis).upper()
+
 
 def _normalize_sequence_numbers(df: pd.DataFrame, domain: str) -> pd.DataFrame:
     """Normalize sequence numbers to ensure uniqueness within subjects"""

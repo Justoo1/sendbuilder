@@ -27,7 +27,7 @@
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <p><strong>Study ID:</strong> {{ study.id }}</p>
+                                        <p><strong>Study ID:</strong> {{ study.study_number }}</p>
                                         <p><strong>Title:</strong> {{ study.title|default:"N/A" }}</p>
                                         <p><strong>Description:</strong> {{ study.description|default:"N/A" }}</p>
                                     </div>
@@ -326,7 +326,6 @@
         }
         
         function downloadAllFiles() {
-            // Create a temporary form to download multiple files
             const domains = {{ extracted_domains|length }};
             const fdaFiles = {{ total_fda_files }};
             
@@ -335,28 +334,36 @@
                 return;
             }
             
-            if (confirm(`Download all available files (${domains} domain files + ${fdaFiles} FDA files)?`)) {
-                // Download domain files
-                {% for domain in extracted_domains %}
-                setTimeout(() => {
-                    window.open('/extraction/{{ study.id }}/download/csv/{{ domain.domain.code }}/', '_blank');
-                }, {{ forloop.counter0 }} * 500);
+            // Create modal for download progress
+            const modal = createDownloadModal();
+            
+            if (confirm(`Download all available files (${domains} domain files + ${fdaFiles} FDA files) as a ZIP archive?`)) {
+                // Show progress modal
+                const progressModal = new bootstrap.Modal(modal);
+                progressModal.show();
                 
-                {% if domain.xpt_file %}
-                setTimeout(() => {
-                    window.open('/extraction/{{ study.id }}/download/xpt/{{ domain.domain.code }}/', '_blank');
-                }, ({{ forloop.counter0 }} * 500) + 250);
-                {% endif %}
-                {% endfor %}
+                // Update progress
+                updateProgress(modal, 'Preparing files for download...', 0);
                 
-                // Download FDA files
-                {% for fda_file in fda_files %}
-                {% if fda_file.file %}
-                setTimeout(() => {
-                    window.open('/extraction/{{ study.id }}/download/fda/?filename={{ fda_file.name }}', '_blank');
-                }, ({{ extracted_domains|length }} * 500) + ({{ forloop.counter0 }} * 300));
-                {% endif %}
-                {% endfor %}
+                // Create download link
+                const link = document.createElement('a');
+                link.href = `/extraction/{{ study.study_id }}/download/all/`;
+                link.download = `study_{{ study.study_number }}_all_files.zip`;
+                
+                // Handle download completion
+                link.addEventListener('click', function() {
+                    setTimeout(() => {
+                        updateProgress(modal, 'Download completed!', 100);
+                        setTimeout(() => {
+                            progressModal.hide();
+                            document.body.removeChild(modal);
+                        }, 2000);
+                    }, 1000);
+                });
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
         }
         
@@ -367,5 +374,54 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
         });
+
+        function createDownloadModal() {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'downloadModal';
+            modal.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-download"></i> Downloading Files
+                            </h5>
+                        </div>
+                        <div class="modal-body">
+                            <div class="progress mb-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                    role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <div class="text-center" id="downloadStatus">
+                                Preparing download...
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" disabled>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            return modal;
+        }
+
+        function updateProgress(modal, message, percentage) {
+            const progressBar = modal.querySelector('.progress-bar');
+            const statusText = modal.querySelector('#downloadStatus');
+            const closeBtn = modal.querySelector('[data-bs-dismiss="modal"]');
+            
+            progressBar.style.width = percentage + '%';
+            statusText.textContent = message;
+            
+            if (percentage >= 100) {
+                progressBar.classList.remove('progress-bar-animated');
+                progressBar.classList.add('bg-success');
+                closeBtn.disabled = false;
+            }
+        }
     </script>
 {% endblock  %}

@@ -116,12 +116,17 @@
                                                    class="btn btn-outline-success download-btn">
                                                     <i class="fas fa-file-csv"></i> CSV
                                                 </a>
+                                                
                                                 {% if domain.xpt_file %}
                                                 <a href="{% url 'builder:download_domain_file' study.study_id 'xpt' domain.domain.code %}" 
                                                    class="btn btn-outline-info download-btn">
                                                     <i class="fas fa-file-export"></i> XPT
                                                 </a>
                                                 {% endif %}
+                                                <a href="{% url 'builder:regenerate_xpt' study.study_id domain.domain.code %}" 
+                                                   class="btn btn-outline-info download-btn">
+                                                    <i class="fas fa-redo"></i> Regenerate XPT
+                                                </a>
                                                 <button class="btn btn-outline-secondary" 
                                                         onclick="previewDomain('{{ domain.domain.code }}', {{ domain.content|length }})"
                                                         data-bs-toggle="modal" 

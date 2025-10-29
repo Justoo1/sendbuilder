@@ -200,6 +200,85 @@ class SimpleExtractionPipeline:
                 "error": str(e),
                 "errors": extraction_state['errors']
             }
+    
+    def regenerate_domain_xpt(self, study_id: int, domain_code: str) -> Dict[str, Any]:
+        """Main entry point for domain xpt regeneration"""
+        logger.info(f"Starting regeneration xpt for study {study_id}, domain {domain_code}")
+        
+        # ADDED: Get the Study object for context
+        try:
+            study = Study.objects.get(pk=study_id)
+            logger.info(f"Found study: {study.study_number} - {study.title}")
+        except Study.DoesNotExist:
+            logger.error(f"Study with ID {study_id} not found")
+            return {"success": False, "error": f"Study with ID {study_id} not found"}
+        
+        try:
+            extracted_domain = ExtractedDomain.objects.get(
+                study_id=study_id, 
+                domain__code=domain_code
+            )
+        except ExtractedDomain.DoesNotExist:
+            logger.debug(f"No extracted domain found for study {study_id}, domain {domain_code}")
+            return {"success": False, "error": f"Domain {domain_code} not detected for study {study_id}"}
+        
+        try:
+            # Step 1: Extract from each page
+            file = extracted_domain.csv_file
+            file.open()
+            csv_data = file.read().decode('utf-8')
+            logger.debug(f"Extracted CSV data: {csv_data}")
+            df = self._parse_and_validate(csv_data, domain_code)
+            if df is None or df.empty:
+                return {
+                    "success": False, 
+                    "error": "Failed to parse combined data into valid DataFrame",
+                }
+            
+            logger.info(f"Successfully parsed data into DataFrame with {len(df)} records")
+            
+            # Step 4: Post-process data - MODIFIED to pass study object
+            logger.info("Post-processing data with study context")
+            logger.debug(f"Pre-processing DataFrame: {len(df)} records, columns: {list(df.columns)}")
+            logger.debug(f"Sample data:\n{df.head(3).to_string()}")
+            
+            # FIXED: Pass study object to post_process_domain_data
+            processed_df = post_process_domain_data(df, domain_code, study)
+            if df is None or df.empty:
+                return {
+                    "success": False, 
+                    "error": "Failed to parse combined data into valid DataFrame",
+                }
+            
+            logger.info(f"Successfully parsed data into DataFrame with {len(df)} records")
+            
+            # Step 4: Post-process data - MODIFIED to pass study object
+            logger.info("Post-processing data with study context")
+            logger.debug(f"Pre-processing DataFrame: {len(df)} records, columns: {list(df.columns)}")
+            logger.debug(f"Sample data:\n{df.head(3).to_string()}")
+            
+            xpt_content = self._generate_xpt_file(processed_df, domain_code)
+            if xpt_content:
+                xpt_file = ContentFile(xpt_content, name=f"{domain_code}.xpt")
+                extracted_domain.xpt_file.save(f"{domain_code}.xpt", xpt_file, save=True)
+                logger.info(f"XPT file saved successfully: {len(xpt_content)} bytes")
+            else:
+                logger.warning("XPT file generation failed")
+            
+            
+            logger.info(f"Successfully saved xpt file for {domain_code} records to database")
+            
+            # Return success
+            return {
+                "success": True,
+            }
+            
+        except Exception as e:
+            logger.error(f"Extraction failed for {domain_code}: {e}", exc_info=True)
+            return {
+                "success": False, 
+                "error": str(e),
+            }
         
     def _extract_from_page(self, study_id: int, domain_code: str, page_num: int, 
                       current_page: int, total_pages: int, study=None) -> Dict[str, Any]:

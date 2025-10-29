@@ -18,6 +18,7 @@ urlpatterns = [
     path('extraction/<int:study_id>/', views.ExtractionDashboardView.as_view(), name='dashboard'),
     path('extraction/<int:study_id>/extract/', views.StartExtractionView.as_view(), name='start_extraction'),
     path('extraction/<int:study_id>/extract-all/', views.ExtractAllDomainsView.as_view(), name='extract_all'),
+    path('extraction/<int:study_id>/<str:domain_code>/regenerate-xpt/', views.RegenerateXPTView.as_view(), name='regenerate_xpt'),
     path('extraction/<int:study_id>/status/<str:domain_code>/', views.ExtractionStatusView.as_view(), name='extraction_status'),
     path('extraction/<int:study_id>/generate-fda/', views.GenerateFDAFilesView.as_view(), name='generate_fda'),
     path('extraction/<int:study_id>/results/', views.ResultsView.as_view(), name='results'),

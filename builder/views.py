@@ -815,3 +815,26 @@ class DownloadAllFilesView(View):
         
         return summary
 
+
+class RegenerateXPTView(View):
+    """Regenerate XPT files"""
+    
+    def get(self, request, study_id,domain_code=None):
+        try:
+            if not domain_code:
+                return HttpResponse('Domain code parameter required', status=400)
+            if not study_id:
+                return HttpResponse('Study ID parameter required', status=400)
+            
+            config = ExtractionConfig(validate_results=True)
+            pipeline = ExtractionPipeline(config)
+            response = pipeline.regenerate_domain_xpt(study_id, domain_code)
+            if response['success']:
+                return HttpResponse('XPT file regenerated', status=200)
+            else:
+                return HttpResponse('XPT file regeneration failed', status=400)
+                
+        except Exception as e:
+            logger.error(f"Error regenerating XPT file: {e}")
+            return HttpResponse('Error regenerating XPT file', status=500)
+

@@ -56,6 +56,81 @@ def get_required_columns(domain: str) -> List[str]:
     
     return required_columns[domain]
 
+def get_beneficial_optional_columns(domain: str) -> List[str]:
+    """
+    Get beneficial optional columns that enhance data quality and FDA compliance.
+    These are commonly used optional columns that provide valuable analytical information.
+    
+    Args:
+        domain (str): Domain code
+        
+    Returns:
+        List[str]: List of beneficial optional column names
+    """
+    optional_columns = {
+        # Subject-Level Domains
+        'DM': ['SITEID', 'AGE', 'AGEU', 'DTHFL', 'DTHDTC', 'COUNTRY', 'ACTARMCD', 'ACTARM'],
+        'DS': ['DSCAT', 'DSSCAT', 'DSDY'],
+        
+        # Study Design Domains  
+        'TS': ['TSGRPID', 'TSVALNF', 'TSVALCD'],
+        'TA': ['TABRANCH', 'TATRANS'],
+        'TE': ['TEENRL', 'TEDUR'],
+        'TX': ['SETCD', 'SET'],
+        'SE': ['SEENDTC', 'SEDY'],
+        
+        # Interventions Domains
+        'EX': ['EXCAT', 'EXSCAT', 'EXDOSFRM', 'EXDOSFRQ', 'EXROUTE', 'EXLOT', 'EXLOC', 
+               'EXENDTC', 'EXSTDY', 'EXENDY'],
+        'PC': ['PCCAT', 'PCSCAT', 'PCSTRESC', 'PCSTRESN', 'PCSTRESU', 'PCSPCCND', 
+               'PCMETHOD', 'PCDY', 'PCTPT', 'PCTPTNUM', 'PCELTM', 'PCTPTREF', 'PCRFTDTC'],
+        
+        # Findings Domains
+        'BW': ['BWCAT', 'BWSTRESC', 'BWSTRESN', 'BWSTRESU', 'BWSTAT', 'BWREASND', 
+               'BWLOC', 'BWMETHOD', 'BWDY', 'BWTPT', 'BWTPTNUM', 'BWELTM', 'BWTPTREF', 'BWRFTDTC'],
+        'CL': ['CLSCAT', 'CLORRESU', 'CLSTRESN', 'CLSTRESU', 'CLSTAT', 'CLREASND', 
+               'CLMETHOD', 'CLDY', 'CLTPT', 'CLTPTNUM', 'CLELTM', 'CLTPTREF', 'CLRFTDTC', 
+               'CLSEV', 'CLDIR'],
+        'FW': ['FWCAT', 'FWSTRESC', 'FWSTRESN', 'FWSTRESU', 'FWSTAT', 'FWREASND', 
+               'FWMETHOD', 'FWDY', 'FWTPT', 'FWTPTNUM', 'FWELTM', 'FWTPTREF', 'FWRFTDTC'],
+        'LB': ['LBCAT', 'LBSCAT', 'LBORNRLO', 'LBORNRHI', 'LBSTRESC', 'LBSTRESN', 'LBSTRESU',
+               'LBSTNRLO', 'LBSTNRHI', 'LBNRIND', 'LBSTAT', 'LBREASND', 'LBSPCCND', 'LBSPCUFL',
+               'LBMETHOD', 'LBBLFL', 'LBFAST', 'LBDY', 'LBTPT', 'LBTPTNUM', 'LBELTM', 'LBTPTREF', 'LBRFTDTC'],
+        'MA': ['MACAT', 'MASCAT', 'MAORRESU', 'MASTRESN', 'MASTRESU', 'MASTAT', 'MAREASND',
+               'MADIR', 'MAMETHOD', 'MABLFL', 'MADY'],
+        'MI': ['MICAT', 'MISCAT', 'MIORRESU', 'MISTRESN', 'MISTRESU', 'MISTAT', 'MIREASND',
+               'MIDIR', 'MIMETHOD', 'MIBLFL', 'MIDY'],
+        'OM': ['OMCAT', 'OMSCAT', 'OMSTRESC', 'OMSTRESN', 'OMSTRESU', 'OMSTAT', 'OMREASND',
+               'OMDIR', 'OMMETHOD', 'OMBLFL', 'OMDY'],
+        'VS': ['VSCAT', 'VSSCAT', 'VSSTRESC', 'VSSTRESN', 'VSSTRESU', 'VSSTAT', 'VSREASND',
+               'VSLOC', 'VSMETHOD', 'VSBLFL', 'VSDY', 'VSTPT', 'VSTPTNUM', 'VSELTM', 'VSTPTREF', 'VSRFTDTC'],
+        'EG': ['EGCAT', 'EGSCAT', 'EGSTRESC', 'EGSTRESN', 'EGSTRESU', 'EGSTAT', 'EGREASND',
+               'EGLOC', 'EGMETHOD', 'EGBLFL', 'EGDY', 'EGTPT', 'EGTPTNUM', 'EGELTM', 'EGTPTREF', 'EGRFTDTC'],
+        
+        # Special Purpose
+        'CO': ['CODTC', 'CODY'],
+    }
+    
+    return optional_columns.get(domain, [])
+
+def get_all_standard_columns(domain: str) -> List[str]:
+    """
+    Get both required and beneficial optional columns for a domain.
+    
+    Args:
+        domain (str): Domain code
+        
+    Returns:
+        List[str]: List of all standard column names (required + beneficial optional)
+    """
+    required = get_required_columns(domain)
+    optional = get_beneficial_optional_columns(domain)
+    
+    # Combine and remove duplicates while preserving order
+    all_columns = required + [col for col in optional if col not in required]
+    
+    return all_columns
+
 def get_domain_description(domain: str) -> str:
     """
     Get a description for a SEND domain.

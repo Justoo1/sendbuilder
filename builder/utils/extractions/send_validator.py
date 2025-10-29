@@ -8,7 +8,7 @@ from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 import re
 
-from builder.utils.send_utils import get_required_columns,get_column_description
+from builder.utils.send_utils import get_required_columns,get_column_description, get_all_standard_columns
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +106,7 @@ def _get_default_value(column: str, domain: str, df: pd.DataFrame, study=None) -
     
     # Domain-specific defaults
     defaults = {
+        # Core required columns
         'STUDYID': study.study_number if study and hasattr(study, 'study_number') else 'UNKNOWN',
         'DOMAIN': domain,
         'USUBJID': '',
@@ -116,21 +117,39 @@ def _get_default_value(column: str, domain: str, df: pd.DataFrame, study=None) -
         'STRAIN': '',
         'ARM': '',
         'ARMCD': '',
+        
+        # Sequence and test columns
         f'{domain}SEQ': 1,
         f'{domain}TESTCD': f'{domain}',
         f'{domain}TEST': f'{domain} Test',
         f'{domain}ORRES': '',
         f'{domain}ORRESU': '',
         f'{domain}STRESC': '',
+        f'{domain}STRESN': '',
+        f'{domain}STRESU': '',
         f'{domain}DTC': '',
         f'{domain}DY': '',
+        
+        # Common optional columns with smart defaults
+        f'{domain}CAT': 'GENERAL',
+        f'{domain}SCAT': '',
+        f'{domain}STAT': '',
+        f'{domain}REASND': '',
+        f'{domain}METHOD': '',
+        f'{domain}BLFL': 'N',
+        f'{domain}LOC': 'WHOLE BODY' if domain in ['CL', 'MA', 'MI'] else '',
+        f'{domain}SEV': '' if domain in ['CL', 'MI'] else '',
+        f'{domain}DIR': '',
+        
+        # Study day columns
         'VISITDY': '',
+        
+        # Specific domain defaults
         'EXTRT': 'Test Article',
         'EXROUTE': 'ORAL',
+        'EXDOSFRQ': 'QD',
         'LBSPEC': 'SERUM',
         'LBBLFL': 'N',
-        'MASTRESC': 'NORMAL',
-        'MISTRESC': 'NORMAL',
         'PCSPEC': 'PLASMA',
         'PCTESTCD': 'PARENT',
         'PCTEST': 'Parent Compound',
@@ -141,6 +160,26 @@ def _get_default_value(column: str, domain: str, df: pd.DataFrame, study=None) -
         'DDEVAL': 'PATHOLOGIST',
         'DDCAT': 'PRIMARY',
         'DDSTRESC': 'SCHEDULED SACRIFICE',
+        'CLCAT': 'GENERAL OBSERVATIONS',
+        'CLLOC': 'WHOLE BODY',
+        'MASTRESC': 'NORMAL',
+        'MISTRESC': 'NORMAL',
+        'MISEV': '',
+        
+        # Time point columns
+        f'{domain}TPT': '',
+        f'{domain}TPTNUM': '',
+        f'{domain}ELTM': '',
+        f'{domain}TPTREF': '',
+        f'{domain}RFTDTC': '',
+        
+        # Administrative columns
+        'SITEID': '',
+        'AGE': '',
+        'AGEU': '',
+        'COUNTRY': '',
+        'DTHFL': 'N',
+        'DTHDTC': '',
     }
     
     return defaults.get(column, '')
@@ -373,12 +412,14 @@ def _standardize_column_names(df: pd.DataFrame, domain: str) -> pd.DataFrame:
     return df
 
 def _ensure_required_columns(df: pd.DataFrame, domain: str, study=None) -> pd.DataFrame:
-    """Ensure all required SEND columns are present"""
+    """Ensure all required and beneficial optional SEND columns are present"""
     
-    required_cols = get_required_columns(domain)
+    # Get both required and beneficial optional columns
+    
+    all_standard_cols = get_all_standard_columns(domain)
     
     # Add missing columns with appropriate defaults
-    for col in required_cols:
+    for col in all_standard_cols:
         if col not in df.columns:
             default_value = _get_default_value(col, domain, df, study)
             df[col] = default_value

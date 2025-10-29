@@ -170,6 +170,7 @@ class ExtractedDomain(models.Model):
     domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
     content = models.JSONField() # this will be extracted content saved as list of dictionary
     xpt_file = models.FileField(upload_to=xpt_file_path, blank=True, null=True)
+    csv_file = models.FileField(upload_to=xpt_file_path, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -6,7 +6,8 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('builder.urls')),
-    path('ai/', include('ai.urls'))
+    path('ai/', include('ai.urls')),
+    path('workflow/', include('builder.workflow_urls')),  # Workflow system URLs
 ]
 
 if settings.DEBUG:
